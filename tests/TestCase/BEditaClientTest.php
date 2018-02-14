@@ -60,5 +60,4 @@ class BEditaClientTest extends TestCase
         static::assertNotEmpty($client);
         static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
     }
-
 }

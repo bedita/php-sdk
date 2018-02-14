@@ -396,6 +396,7 @@ class BEditaClient
      *
      * @param string $path Endpoint URL path to invoke.
      * @param mixed $body Request body
+     * @param array|null $headers Custom request headers
      * @return array|null Response in array format.
      */
     public function delete(string $path, $body = null, ?array $headers = null) : ?array
