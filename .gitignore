@@ -2,23 +2,13 @@
 #################################################
 /.vagrant/*
 /composer.lock
-/config/app.php
-/config/.env
+/tests/.env
 /coverage/*
 /index.html
-/logs/*
-!/logs/.gitkeep
 /phpunit.xml
 /provision/*
-/tmp/*
-!/tmp/.gitkeep
 /vendor/*
 !/vendor/.gitkeep
-
-# plugins folders #
-##########################
-/plugins/*
-!/logs/.gitkeep
 
 # IDE and editor specific files #
 #################################
@@ -41,13 +31,3 @@
 Icon?
 ehthumbs.db
 Thumbs.db
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
-
-# node, preprocessors... #
-#################################
-package-lock.json
-node_modules/
