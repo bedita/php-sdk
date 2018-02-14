@@ -17,8 +17,8 @@ before_install:
   - docker pull bedita/bedita:latest
   - docker run -d -p 127.0.0.1:8080:80 --env BEDITA_API_KEY=${BEDITA_API_KEY} --env BEDITA_ADMIN_USR=admin --env BEDITA_ADMIN_PWD=admin bedita/bedita:latest
   - docker ps -a
-  - sleep 5
-  - ./wait-for-it.sh 127.0.0.1:8080 -s -- echo 'BEdita API is up'
+  - sleep 10
+  - ./wait-for-it.sh 127.0.0.1:8080 -s -t 60 -- echo 'BEdita API is up'
 
 install:
   # Install Composer dependencies.
