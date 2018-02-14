@@ -37,6 +37,13 @@ class BEditaClientTest extends TestCase
     private $apiKey = null;
 
     /**
+     * Test client class
+     *
+     * @var \BEdita\SDK\BEditaClient
+     */
+    private $client = null;
+
+    /**
      * {@inheritDoc}
      */
     public function setUp()
@@ -45,6 +52,7 @@ class BEditaClientTest extends TestCase
 
         $this->apiBaseUrl = getenv('BEDITA_API');
         $this->apiKey = getenv('BEDITA_API_KEY');
+        $this->client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
     }
 
     /**
@@ -59,5 +67,19 @@ class BEditaClientTest extends TestCase
         $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
         static::assertNotEmpty($client);
         static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
+    }
+
+    /**
+     * Test `get` method
+     *
+     * @return void
+     *
+     * @covers ::get()
+     */
+    public function testGet()
+    {
+        $response = $this->client->get('/status');
+        static::assertNotEmpty($response);
+        static::assertNotEmpty($response['meta']['status']);
     }
 }
