@@ -23,6 +23,31 @@ use PHPUnit\Framework\TestCase;
 class BEditaClientTest extends TestCase
 {
     /**
+     * Test API base URL
+     *
+     * @var string
+     */
+    private $apiBaseUrl = null;
+
+    /**
+     * Test API KEY
+     *
+     * @var string
+     */
+    private $apiKey = null;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->apiBaseUrl = getenv('BEDITA_API');
+        $this->apiKey = getenv('BEDITA_API_KEY');
+    }
+
+    /**
      * Test client constructor
      *
      * @return void
@@ -31,11 +56,9 @@ class BEditaClientTest extends TestCase
      */
     public function testConstruct()
     {
-        $apiBaseUrl = getenv('BEDITA_API');
-        $apiKey = getenv('BEDITA_API_KEY');
-
-        $client = new BEditaClient($apiBaseUrl, $apiKey);
+        $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
         static::assertNotEmpty($client);
-        static::assertEquals($client->getApiBaseUrl(), $apiBaseUrl);
+        static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
     }
+
 }
