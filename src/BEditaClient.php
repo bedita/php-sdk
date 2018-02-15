@@ -30,7 +30,7 @@ class BEditaClient
      *
      * @var \Psr\Http\Message\ResponseInterface
      */
-    private $response;
+    private $response = null;
 
     /**
      * BEdita4 API base URL
@@ -110,9 +110,21 @@ class BEditaClient
     }
 
     /**
+     * Get default headers in use on every request
+     *
+     * @return array Default headers
+     * @codeCoverageIgnore
+     */
+    public function getDefaultHeaders() : array
+    {
+        return $this->defaultHeaders;
+    }
+
+    /**
      * Get API base URL used tokens
      *
      * @return string API base URL
+     * @codeCoverageIgnore
      */
     public function getApiBaseUrl() : string
     {
@@ -123,6 +135,7 @@ class BEditaClient
      * Get current used tokens
      *
      * @return array Current tokens
+     * @codeCoverageIgnore
      */
     public function getTokens() : array
     {
@@ -133,6 +146,7 @@ class BEditaClient
      * Get last HTTP response
      *
      * @return ResponseInterface Response PSR interface
+     * @codeCoverageIgnore
      */
     public function getResponse() : ResponseInterface
     {
@@ -141,22 +155,24 @@ class BEditaClient
 
     /**
      * Get HTTP response status code
+     * Return null if no response is available
      *
-     * @return int Status code.
+     * @return int|null Status code.
      */
-    public function getStatusCode() : int
+    public function getStatusCode() : ?int
     {
-        return $this->response->getStatusCode();
+        return $this->response ? $this->response->getStatusCode() : null;
     }
 
     /**
      * Get HTTP response status message
+     * Return null if no response is available
      *
-     * @return string Message related to status code.
+     * @return string|null Message related to status code.
      */
-    public function getStatusMessage() : string
+    public function getStatusMessage() : ?string
     {
-        return $this->response->getReasonPhrase();
+        return $this->response ? $this->response->getReasonPhrase() : null;
     }
 
     /**
@@ -166,7 +182,7 @@ class BEditaClient
      */
     public function getResponseBody()
     {
-        return json_decode((string)$this->response->getBody(), true);
+        return $this->response ? json_decode((string)$this->response->getBody(), true) : null;
     }
 
     /**

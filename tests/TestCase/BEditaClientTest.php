@@ -82,4 +82,47 @@ class BEditaClientTest extends TestCase
         static::assertNotEmpty($response);
         static::assertNotEmpty($response['meta']['status']);
     }
+
+    /**
+     * Test `setupTokens` method
+     *
+     * @return void
+     *
+     * @covers ::setupTokens()
+     */
+    public function testSetupTokens()
+    {
+        $token = ['jwt' => '12345', 'renew' => '67890'];
+        $this->client->setupTokens($token);
+
+        $headers = $this->client->getDefaultHeaders();
+        static::assertNotEmpty($headers['Authorization']);
+        static::assertEquals('Bearer 12345', $headers['Authorization']);
+
+        $this->client->setupTokens([]);
+        $headers = $this->client->getDefaultHeaders();
+        static::assertArrayNotHasKey('Authorization', $headers);
+    }
+
+    /**
+     * Test code/message/response body method
+     *
+     * @return void
+     *
+     * @covers ::getStatusCode()
+     * @covers ::getStatusMessage()
+     * @covers ::getResponseBody()
+     */
+    public function testCodeMessageResponse()
+    {
+        $response = $this->client->get('/status');
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($this->client->getResponseBody());
+
+        $localClient = new BEditaClient($this->apiBaseUrl, $this->apiKey);
+        static::assertNull($localClient->getStatusCode());
+        static::assertNull($localClient->getStatusMessage());
+        static::assertNull($localClient->getResponseBody());
+    }
 }
