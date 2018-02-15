@@ -377,7 +377,7 @@ class BEditaClient
                 'type' => $type,
             ],
         ];
-        $headers['Content-Type'] = 'application/json';
+        $headers = ['Content-Type' => 'application/json'];
 
         return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body), $headers);
     }
@@ -512,7 +512,7 @@ class BEditaClient
     public function refreshTokens() : void
     {
         if (empty($this->tokens['renew'])) {
-            throw new \BadMethodCallException(__('You must be logged in to renew token'));
+            throw new \BadMethodCallException('You must be logged in to renew token');
         }
 
         $headers = [
@@ -522,7 +522,7 @@ class BEditaClient
         $this->sendRequest('POST', '/auth', [], $headers);
         $body = $this->getResponseBody();
         if (empty($body['meta']['jwt'])) {
-            throw new BEditaClientException(__('Invalid response from server'));
+            throw new BEditaClientException('Invalid response from server');
         }
 
         $this->setupTokens($body['meta']);
