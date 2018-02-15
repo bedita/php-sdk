@@ -1,4 +1,12 @@
 <?php
+/**
+ * BEdita, API-first content management framework
+ * Copyright 2018 ChannelWeb Srl, Chialab Srl
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ */
 
 namespace BEdita\SDK;
 
