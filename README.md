@@ -1,3 +1,3 @@
-# BEdita PHP SDK
+# BEdita API PHP SDK
 
-BEdita4 Official PHP SDK
+BEdita4 PHP Official PHP SDK
