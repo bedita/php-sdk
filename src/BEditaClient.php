@@ -175,11 +175,19 @@ class BEditaClient
     /**
      * Get response body serialized into a PHP array
      *
-     * @return array|bool|null Response body as PHP array.
+     * @return array|null Response body as PHP array.
      */
-    public function getResponseBody()
+    public function getResponseBody() : ?array
     {
-        return $this->response ? json_decode((string)$this->response->getBody(), true) : null;
+        if (empty($this->response)) {
+            return null;
+        }
+        $responseBody = json_decode((string)$this->response->getBody(), true);
+        if (!is_array($responseBody)) {
+            return null;
+        }
+
+        return $responseBody;
     }
 
     /**
@@ -202,9 +210,9 @@ class BEditaClient
      * @param string $path Endpoint URL path to invoke
      * @param array|null $query Optional query string
      * @param array|null $headers Headers
-     * @return array|bool|null Response in array format
+     * @return array|null Response in array format
      */
-    public function get(string $path, ?array $query = null, ?array $headers = null)
+    public function get(string $path, ?array $query = null, ?array $headers = null) : ?array
     {
         $this->sendRequestRetry('GET', $path, $query, $headers);
 
@@ -345,9 +353,9 @@ class BEditaClient
      * Get JSON SCHEMA of a resource or object
      *
      * @param string $type Object or resource type name
-     * @return array|bool JSON SCHEMA in array format
+     * @return array|null JSON SCHEMA in array format
      */
-    public function schema(string $type)
+    public function schema(string $type) : ?array
     {
         $h = ['Accept' => 'application/schema+json'];
 
