@@ -53,6 +53,15 @@ class BEditaClient
     ];
 
     /**
+     * Default headers in request
+     *
+     * @var array
+     */
+    private $defaultContentTypeHeader = [
+        'Content-Type' => 'application/json',
+    ];
+
+    /**
      * JWT Auth tokens
      *
      * @var array
@@ -317,7 +326,6 @@ class BEditaClient
                 'attributes' => $data,
             ],
         ];
-        $headers['Content-Type'] = 'application/vnd.api+json';
         if (!$id) {
             return $this->post(sprintf('/%s', $type), json_encode($body), $headers);
         }
@@ -377,9 +385,8 @@ class BEditaClient
                 'type' => $type,
             ],
         ];
-        $headers = ['Content-Type' => 'application/json'];
 
-        return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body), $headers);
+        return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body));
     }
 
     /**
@@ -476,6 +483,11 @@ class BEditaClient
             $uri = $uri->withQuery(http_build_query((array)$query));
         }
         $headers = array_merge($this->defaultHeaders, (array)$headers);
+
+        // set default `Content-Type` if not set and $body not empty
+        if (!empty($body)) {
+            $headers = array_merge($this->defaultContentTypeHeader, $headers);
+        }
 
         // Send the request synchronously to retrieve the response.
         $this->response = $this->jsonApiClient->sendRequest(new Request($method, $uri, $headers, $body));
