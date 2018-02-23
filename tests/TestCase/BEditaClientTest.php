@@ -13,6 +13,7 @@
 namespace BEdita\SDK\Test\TestCase;
 
 use BEdita\SDK\BEditaClient;
+use BEdita\SDK\BEditaClientException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,6 +38,20 @@ class BEditaClientTest extends TestCase
     private $apiKey = null;
 
     /**
+     * Test Admin user
+     *
+     * @var string
+     */
+    private $adminUser = null;
+
+    /**
+     * Test Admin user
+     *
+     * @var string
+     */
+    private $adminPassword = null;
+
+    /**
      * Test client class
      *
      * @var \BEdita\SDK\BEditaClient
@@ -52,6 +67,8 @@ class BEditaClientTest extends TestCase
 
         $this->apiBaseUrl = getenv('BEDITA_API');
         $this->apiKey = getenv('BEDITA_API_KEY');
+        $this->adminUser = getenv('BEDITA_ADMIN_USR');
+        $this->adminPassword = getenv('BEDITA_ADMIN_PWD');
         $this->client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
     }
 
@@ -124,5 +141,119 @@ class BEditaClientTest extends TestCase
         static::assertNull($localClient->getStatusCode());
         static::assertNull($localClient->getStatusMessage());
         static::assertNull($localClient->getResponseBody());
+    }
+
+    /**
+     * Test `authenticate` method
+     *
+     * @return void
+     *
+     * @covers ::authenticate()
+     */
+    public function testAuthenticate()
+    {
+        $response = $this->client->authenticate($this->adminUser, $this->adminPassword);
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('meta', $response);
+        static::assertArrayHasKey('jwt', $response['meta']);
+        static::assertArrayHasKey('renew', $response['meta']);
+        static::assertArrayNotHasKey('error', $response);
+    }
+
+    /**
+     * Test `authenticate` method failure
+     *
+     * @return void
+     *
+     * @covers ::authenticate()
+     */
+    public function testAuthenticateFail()
+    {
+        $expected = new BEditaClientException('[401] Login not successful');
+        static::expectException(get_class($expected));
+        static::expectExceptionMessage($expected->getMessage());
+        $this->client->authenticate('baduser', 'badpassword');
+    }
+
+    /**
+     * Authenticate and set auth tokens
+     *
+     * @return void
+     */
+    private function authenticate()
+    {
+        $response = $this->client->authenticate($this->adminUser, $this->adminPassword);
+        $this->client->setupTokens($response['meta']);
+    }
+
+    /**
+     * Test `getObjects` method
+     *
+     * @return void
+     *
+     * @covers ::getObjects()
+     */
+    public function testGetObjects()
+    {
+        $this->authenticate();
+        $response = $this->client->getObjects();
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayNotHasKey('error', $response);
+    }
+
+    /**
+     * Test `getObject` method
+     *
+     * @return void
+     *
+     * @covers ::getObject()
+     */
+    public function testGetObject()
+    {
+        $this->authenticate();
+        $response = $this->client->getObject(1);
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayNotHasKey('error', $response);
+    }
+
+    /**
+     * Test `saveObject` method
+     *
+     * @return void
+     *
+     * @covers ::saveObject()
+     */
+    public function testSaveObject()
+    {
+        $this->authenticate();
+        $data = [
+            'title' => 'A title',
+        ];
+        $response = $this->client->saveObject('documents', $data);
+        static::assertEquals(201, $this->client->getStatusCode());
+        static::assertEquals('Created', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertNotEmpty($response['data']['id']);
+
+        $data = [
+            'id' => $response['data']['id'],
+            'title' => 'A new title',
+        ];
+        $response = $this->client->saveObject('documents', $data);
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($data['title'], $response['data']['attributes']['title']);
     }
 }
