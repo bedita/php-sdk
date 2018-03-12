@@ -370,8 +370,7 @@ class BEditaClientTest extends TestCase
     public function testUpload($input, $expected)
     {
         $this->authenticate();
-        $exceptionExpected = $expected instanceof \Exception;
-        if ($exceptionExpected) {
+        if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionMessage($expected->getMessage());
         }
