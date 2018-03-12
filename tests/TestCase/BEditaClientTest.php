@@ -372,8 +372,8 @@ class BEditaClientTest extends TestCase
         $this->authenticate();
         $exceptionExpected = $expected instanceof \Exception;
         if ($exceptionExpected) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionMessage($expected->getMessage());
+            static::expectException(get_class($expected));
+            static::expectExceptionMessage($expected->getMessage());
         }
         $result = $this->client->upload($input['filename'], $input['filepath'], $input['headers']);
         if ($exceptionExpected) {
