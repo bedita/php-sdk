@@ -258,16 +258,12 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `upload` and `createStreamMedia` methods
+     * Test `upload` and `createMediaFromStream` methods
      *
      * @return void
      *
-     * @covers ::get()
      * @covers ::upload()
-     * @covers ::createStreamMedia()
-     * @covers ::patch()
-     * @covers ::post()
-     * @covers ::getObject()
+     * @covers ::createMediaFromStream()
      */
     public function testUpload()
     {
@@ -297,7 +293,7 @@ class BEditaClientTest extends TestCase
         $attributes = compact('title');
         $data = compact('type', 'attributes');
         $body = compact('data');
-        $response = $this->client->createStreamMedia($streamId, $type, $body);
+        $response = $this->client->createMediaFromStream($streamId, $type, $body);
         static::assertEquals(200, $this->client->getStatusCode());
         static::assertEquals('OK', $this->client->getStatusMessage());
         static::assertNotEmpty($response);

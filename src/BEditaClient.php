@@ -10,6 +10,7 @@
 
 namespace BEdita\SDK;
 
+use Cake\Network\Exception\NotFoundException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use Http\Adapter\Guzzle6\Client;
@@ -361,16 +362,27 @@ class BEditaClient
      * Upload file (POST)
      *
      * @param string $filename The file name
-     * @param string $filepath The file full path
-     * @param array $headers Custom request headers
+     * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
+     * @param array|null $headers Custom request headers
      * @return array|null Response in array format
+     * @throws \Cake\Network\Exception\NotFoundException
      */
-    public function upload($filename, $filepath, array $headers = ['Content-Type' => '']) : array
+    public function upload($filename, $filepath, ?array $headers = null) : array
     {
         $path = sprintf('/streams/upload/%s', $filename);
-        $handle = fopen($filepath, "r");
-        $body = fread($handle, filesize($filepath));
-        fclose($handle);
+        try {
+            if (!file_exists($filepath)) {
+                throw new Exception('File not found.');
+            }
+            $handle = fopen($filepath, "r");
+            if (!$handle) {
+                throw new Exception('File open failed.');
+            }
+            $body = fread($handle, filesize($filepath));
+            fclose($handle);
+        } catch (Exception $e) {
+            throw new BEditaClientException('Error opening file');
+        }
         $headers['Content-Type'] = mime_content_type($filepath);
 
         return $this->post($path, $body, $headers);
@@ -387,7 +399,7 @@ class BEditaClient
      * @param array $body The body data
      * @return array|null Response in array format
      */
-    public function createStreamMedia($streamId, $type, $body) : array
+    public function createMediaFromStream($streamId, $type, $body) : array
     {
         $response = $this->post(sprintf('/%s', $type), json_encode($body));
         if (empty($response)) {
