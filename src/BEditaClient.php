@@ -358,6 +358,53 @@ class BEditaClient
     }
 
     /**
+     * Upload file (POST)
+     *
+     * @param string $filename The file name
+     * @param string $filepath The file full path
+     * @param array $headers Custom request headers
+     * @return array|null Response in array format
+     */
+    public function upload($filename, $filepath, array $headers = ['Content-Type' => '']) : array
+    {
+        $path = sprintf('/streams/upload/%s', $filename);
+        $handle = fopen($filepath, "r");
+        $body = fread($handle, filesize($filepath));
+        fclose($handle);
+        $headers['Content-Type'] = mime_content_type($filepath);
+
+        return $this->post($path, $body, $headers);
+    }
+
+    /**
+     * Create media by type and body data and link it to a stream:
+     *  - `POST /:type` with `$body` as payload, create media object
+     *  - `PATCH /streams/:stream_id/relationships/object` modify stream adding relation to media
+     *  - `GET /:type/:id` get media data
+     *
+     * @param string $streamId The stream identifier
+     * @param string $type The type
+     * @param array $body The body data
+     * @return array|null Response in array format
+     */
+    public function createStreamMedia($streamId, $type, $body) : array
+    {
+        $response = $this->post(sprintf('/%s', $type), json_encode($body));
+        if (empty($response)) {
+            throw new BEditaClientException('Invalid response from POST ' . sprintf('/%s', $type));
+        }
+        $id = $response['data']['id'];
+        $data = compact('id', 'type');
+        $body = compact('data');
+        $response = $this->patch(sprintf('/streams/%s/relationships/object', $streamId), json_encode($body));
+        if (empty($response)) {
+            throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
+        }
+
+        return $this->getObject($data['id'], $data['type']);
+    }
+
+    /**
      * Get JSON SCHEMA of a resource or object
      *
      * @param string $type Object or resource type name

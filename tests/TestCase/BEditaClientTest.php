@@ -256,4 +256,60 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('attributes', $response['data']);
         static::assertEquals($data['title'], $response['data']['attributes']['title']);
     }
+
+    /**
+     * Test `upload` method
+     *
+     * @return void
+     *
+     * @covers ::get()
+     * @covers ::upload()
+     * @covers ::createStreamMedia()
+     * @covers ::patch()
+     * @covers ::post()
+     * @covers ::getObject()
+     */
+    public function testUpload()
+    {
+        $this->authenticate();
+        $filename = 'test.png';
+        $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
+        $response = $this->client->upload($filename, $filepath);
+        static::assertEquals(201, $this->client->getStatusCode());
+        static::assertEquals('Created', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($filename, $response['data']['attributes']['file_name']);
+
+        $streamId = $response['data']['id'];
+        $response = $this->client->get(sprintf('/streams/%s', $streamId));
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($streamId, $response['data']['id']);
+        static::assertEquals($filename, $response['data']['attributes']['file_name']);
+
+        $type = 'images';
+        $title = 'A new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $response = $this->client->createStreamMedia($streamId, $type, $body);
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($type, $response['data']['type']);
+        static::assertEquals($title, $response['data']['attributes']['title']);
+        static::assertArrayHasKey('included', $response);
+        static::assertArrayHasKey(0, $response['included']);
+        static::assertArrayHasKey('id', $response['included'][0]);
+        static::assertArrayHasKey('attributes', $response['included'][0]);
+        static::assertEquals($streamId, $response['included'][0]['id']);
+        static::assertEquals('streams', $response['included'][0]['type']);
+    }
 }
