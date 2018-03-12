@@ -316,32 +316,42 @@ class BEditaClientTest extends TestCase
     {
         return [
             '500 File not found' => [
-                'not-on-file-system.jpg',
-                getcwd() . '/tests/files/not-on-file-system.jpg',
-                null,
-                500,
-                'File not found',
+                [
+                    'filename' => 'not-on-file-system.jpg',
+                    'filepath' => getcwd() . '/tests/files/not-on-file-system.jpg',
+                    'headers' => null,
+                ],
+                new BEditaClientException('File not found', 500),
             ],
             '500 File get contents failed' => [
-                'test-bad.jpg',
-                getcwd() . '/tests/files/test-bad.jpg',
-                null,
-                500,
-                'File get contents failed',
+                [
+                    'filename' => 'test-bad.jpg',
+                    'filepath' => getcwd() . '/tests/files/test-bad.jpg',
+                    'headers' => null,
+                ],
+                new BEditaClientException('File get contents failed', 500),
             ],
             '201 Created, Force content type' => [
-                'test.png',
-                getcwd() . '/tests/files/test.png',
-                [ 'Content-Type' => 'image/png' ],
-                201,
-                'Created',
+                [
+                    'filename' => 'test.png',
+                    'filepath' => getcwd() . '/tests/files/test.png',
+                    'headers' => [ 'Content-Type' => 'image/png' ],
+                ],
+                [
+                    'code' => 201,
+                    'message' => 'Created',
+                ],
             ],
             '201 Created, Content type from mime' => [
-                'test.png',
-                getcwd() . '/tests/files/test.png',
-                null,
-                201,
-                'Created',
+                [
+                    'filename' => 'test.png',
+                    'filepath' => getcwd() . '/tests/files/test.png',
+                    'headers' => null,
+                ],
+                [
+                    'code' => 201,
+                    'message' => 'Created',
+                ],
             ],
         ];
     }
@@ -349,26 +359,32 @@ class BEditaClientTest extends TestCase
     /**
      * Test `upload`.
      *
+     * @param mixed $input Input data for upload
+     * @param mixed $expected Expected result
      * @return void
      *
      * @dataProvider uploadProvider
      * @covers ::upload()
      * @covers ::createMediaFromStream()
      */
-    public function testUpload($filename, $filepath, $headers, $statusCode, $statusMessage)
+    public function testUpload($input, $expected)
     {
         $this->authenticate();
-        try {
-            $response = $this->client->upload($filename, $filepath, $headers);
-            static::assertEquals($statusCode, $this->client->getStatusCode());
-            static::assertEquals($statusMessage, $this->client->getStatusMessage());
-            static::assertNotEmpty($response);
-            static::assertArrayHasKey('data', $response);
-            static::assertArrayHasKey('attributes', $response['data']);
-            static::assertEquals($filename, $response['data']['attributes']['file_name']);
-        } catch (BEditaClientException $e) {
-            static::assertEquals($statusCode, $e->getCode());
-            static::assertEquals($statusMessage, $e->getMessage());
+        $exceptionExpected = $expected instanceof \Exception;
+        if ($exceptionExpected) {
+            $this->expectException(get_class($expected));
+            $this->expectExceptionMessage($expected->getMessage());
+        }
+        $result = $this->client->upload($input['filename'], $input['filepath'], $input['headers']);
+        if ($exceptionExpected) {
+            static::assertSame($expected, $result);
+        } else {
+            static::assertEquals($expected['code'], $this->client->getStatusCode());
+            static::assertEquals($expected['message'], $this->client->getStatusMessage());
+            static::assertNotEmpty($result);
+            static::assertArrayHasKey('data', $result);
+            static::assertArrayHasKey('attributes', $result['data']);
+            static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
         }
     }
 }
