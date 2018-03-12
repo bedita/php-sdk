@@ -10,7 +10,6 @@
 
 namespace BEdita\SDK;
 
-use Cake\Network\Exception\NotFoundException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use Http\Adapter\Guzzle6\Client;
@@ -365,27 +364,22 @@ class BEditaClient
      * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
-     * @throws \Cake\Network\Exception\NotFoundException
+     * @throws BEditaClientException
      */
     public function upload($filename, $filepath, ?array $headers = null) : array
     {
-        $path = sprintf('/streams/upload/%s', $filename);
-        try {
-            if (!file_exists($filepath)) {
-                throw new Exception('File not found.');
-            }
-            $handle = fopen($filepath, "r");
-            if (!$handle) {
-                throw new Exception('File open failed.');
-            }
-            $body = fread($handle, filesize($filepath));
-            fclose($handle);
-        } catch (Exception $e) {
-            throw new BEditaClientException('Error opening file');
+        if (!file_exists($filepath)) {
+            throw new BEditaClientException('File not found', 500);
         }
-        $headers['Content-Type'] = mime_content_type($filepath);
+        $file = file_get_contents($filepath);
+        if (!$file) {
+            throw new BEditaClientException('File get contents failed', 500);
+        }
+        if (empty($headers['Content-Type'])) {
+            $headers['Content-Type'] = mime_content_type($filepath);
+        }
 
-        return $this->post($path, $body, $headers);
+        return $this->post(sprintf('/streams/upload/%s', $filename), $file, $headers);
     }
 
     /**
@@ -398,6 +392,7 @@ class BEditaClient
      * @param string $type The type
      * @param array $body The body data
      * @return array|null Response in array format
+     * @throws BEditaClientException
      */
     public function createMediaFromStream($streamId, $type, $body) : array
     {
@@ -532,7 +527,7 @@ class BEditaClient
      * @param string[]|null $headers Custom request headers.
      * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
-     * @throws \App\Model\API\BEditaClientException Throws an exception if server response code is not 20x.
+     * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
     protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : ResponseInterface
     {
@@ -579,6 +574,7 @@ class BEditaClient
      * @throws \Cake\Network\Exception\ServiceUnavailableException Throws an exception if server response doesn't
      *      include the expected data.
      * @return void
+     * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
     public function refreshTokens() : void
     {
