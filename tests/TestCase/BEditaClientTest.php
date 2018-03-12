@@ -256,4 +256,130 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('attributes', $response['data']);
         static::assertEquals($data['title'], $response['data']['attributes']['title']);
     }
+
+    /**
+     * Test `upload` and `createMediaFromStream` methods
+     *
+     * @return void
+     *
+     * @covers ::upload()
+     * @covers ::createMediaFromStream()
+     */
+    public function testUploadCreate()
+    {
+        $this->authenticate();
+        $filename = 'test.png';
+        $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
+        $response = $this->client->upload($filename, $filepath);
+        static::assertEquals(201, $this->client->getStatusCode());
+        static::assertEquals('Created', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($filename, $response['data']['attributes']['file_name']);
+
+        $streamId = $response['data']['id'];
+        $response = $this->client->get(sprintf('/streams/%s', $streamId));
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($streamId, $response['data']['id']);
+        static::assertEquals($filename, $response['data']['attributes']['file_name']);
+
+        $type = 'images';
+        $title = 'A new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $response = $this->client->createMediaFromStream($streamId, $type, $body);
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertArrayHasKey('attributes', $response['data']);
+        static::assertEquals($type, $response['data']['type']);
+        static::assertEquals($title, $response['data']['attributes']['title']);
+        static::assertArrayHasKey('included', $response);
+        static::assertArrayHasKey(0, $response['included']);
+        static::assertArrayHasKey('id', $response['included'][0]);
+        static::assertArrayHasKey('attributes', $response['included'][0]);
+        static::assertEquals($streamId, $response['included'][0]['id']);
+        static::assertEquals('streams', $response['included'][0]['type']);
+    }
+
+    /**
+     * Data provider for `testUpload`
+     */
+    public function uploadProvider()
+    {
+        return [
+            '500 File not found' => [
+                [
+                    'filename' => 'not-on-file-system.jpg',
+                    'filepath' => getcwd() . '/tests/files/not-on-file-system.jpg',
+                    'headers' => null,
+                ],
+                new BEditaClientException('File not found', 500),
+            ],
+            '500 File get contents failed' => [
+                [
+                    'filename' => 'test-bad.jpg',
+                    'filepath' => getcwd() . '/tests/files/test-bad.jpg',
+                    'headers' => null,
+                ],
+                new BEditaClientException('File get contents failed', 500),
+            ],
+            '201 Created, Force content type' => [
+                [
+                    'filename' => 'test.png',
+                    'filepath' => getcwd() . '/tests/files/test.png',
+                    'headers' => [ 'Content-Type' => 'image/png' ],
+                ],
+                [
+                    'code' => 201,
+                    'message' => 'Created',
+                ],
+            ],
+            '201 Created, Content type from mime' => [
+                [
+                    'filename' => 'test.png',
+                    'filepath' => getcwd() . '/tests/files/test.png',
+                    'headers' => null,
+                ],
+                [
+                    'code' => 201,
+                    'message' => 'Created',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `upload`.
+     *
+     * @param mixed $input Input data for upload
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider uploadProvider
+     * @covers ::upload()
+     * @covers ::createMediaFromStream()
+     */
+    public function testUpload($input, $expected)
+    {
+        $this->authenticate();
+        if ($expected instanceof \Exception) {
+            static::expectException(get_class($expected));
+            static::expectExceptionMessage($expected->getMessage());
+        }
+        $result = $this->client->upload($input['filename'], $input['filepath'], $input['headers']);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($result);
+        static::assertArrayHasKey('data', $result);
+        static::assertArrayHasKey('attributes', $result['data']);
+        static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
+    }
 }

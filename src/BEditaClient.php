@@ -358,6 +358,60 @@ class BEditaClient
     }
 
     /**
+     * Upload file (POST)
+     *
+     * @param string $filename The file name
+     * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     * @throws BEditaClientException
+     */
+    public function upload($filename, $filepath, ?array $headers = null) : array
+    {
+        if (!file_exists($filepath)) {
+            throw new BEditaClientException('File not found', 500);
+        }
+        $file = file_get_contents($filepath);
+        if (!$file) {
+            throw new BEditaClientException('File get contents failed', 500);
+        }
+        if (empty($headers['Content-Type'])) {
+            $headers['Content-Type'] = mime_content_type($filepath);
+        }
+
+        return $this->post(sprintf('/streams/upload/%s', $filename), $file, $headers);
+    }
+
+    /**
+     * Create media by type and body data and link it to a stream:
+     *  - `POST /:type` with `$body` as payload, create media object
+     *  - `PATCH /streams/:stream_id/relationships/object` modify stream adding relation to media
+     *  - `GET /:type/:id` get media data
+     *
+     * @param string $streamId The stream identifier
+     * @param string $type The type
+     * @param array $body The body data
+     * @return array|null Response in array format
+     * @throws BEditaClientException
+     */
+    public function createMediaFromStream($streamId, $type, $body) : array
+    {
+        $response = $this->post(sprintf('/%s', $type), json_encode($body));
+        if (empty($response)) {
+            throw new BEditaClientException('Invalid response from POST ' . sprintf('/%s', $type));
+        }
+        $id = $response['data']['id'];
+        $data = compact('id', 'type');
+        $body = compact('data');
+        $response = $this->patch(sprintf('/streams/%s/relationships/object', $streamId), json_encode($body));
+        if (empty($response)) {
+            throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
+        }
+
+        return $this->getObject($data['id'], $data['type']);
+    }
+
+    /**
      * Get JSON SCHEMA of a resource or object
      *
      * @param string $type Object or resource type name
@@ -473,7 +527,7 @@ class BEditaClient
      * @param string[]|null $headers Custom request headers.
      * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
-     * @throws \App\Model\API\BEditaClientException Throws an exception if server response code is not 20x.
+     * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
     protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : ResponseInterface
     {
@@ -520,6 +574,7 @@ class BEditaClient
      * @throws \Cake\Network\Exception\ServiceUnavailableException Throws an exception if server response doesn't
      *      include the expected data.
      * @return void
+     * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
     public function refreshTokens() : void
     {
