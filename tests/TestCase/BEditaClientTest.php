@@ -376,15 +376,11 @@ class BEditaClientTest extends TestCase
             static::expectExceptionMessage($expected->getMessage());
         }
         $result = $this->client->upload($input['filename'], $input['filepath'], $input['headers']);
-        if ($exceptionExpected) {
-            static::assertSame($expected, $result);
-        } else {
-            static::assertEquals($expected['code'], $this->client->getStatusCode());
-            static::assertEquals($expected['message'], $this->client->getStatusMessage());
-            static::assertNotEmpty($result);
-            static::assertArrayHasKey('data', $result);
-            static::assertArrayHasKey('attributes', $result['data']);
-            static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
-        }
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($result);
+        static::assertArrayHasKey('data', $result);
+        static::assertArrayHasKey('attributes', $result['data']);
+        static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
     }
 }
