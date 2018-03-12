@@ -258,7 +258,7 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `upload` method
+     * Test `upload` and `createStreamMedia` methods
      *
      * @return void
      *
