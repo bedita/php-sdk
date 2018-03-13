@@ -225,6 +225,44 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Data provider for `testGetRelated`
+     */
+    public function getRelatedProvider()
+    {
+        return [
+            '200 OK, User 1 Roles' => [
+                [
+                    'id' => 1,
+                    'type' => 'users',
+                    'relation' => 'roles',
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `getRelated` method
+     *
+     * @return void
+     *
+     * @covers ::getRelated()
+     * @dataProvider getRelatedProvider
+     */
+    public function testGetRelated($input, $expected)
+    {
+        $this->authenticate();
+        $result = $this->client->getRelated($input['id'], $input['type'], $input['relation']);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($result);
+        static::assertArrayHasKey('data', $result);
+    }
+
+    /**
      * Test `saveObject` method
      *
      * @return void
