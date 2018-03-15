@@ -263,6 +263,60 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Data provider for `testAddRelated`
+     */
+    public function addRelatedProvider()
+    {
+        return [
+            'user => roles => admin' => [
+                [
+                    [
+                        'type' => 'users',
+                        'data' => [
+                            'username' => 'johndoe',
+                            'password' => 'a9dlfG#53',
+                            'uname' => 'johndoe',
+                        ],
+                    ],
+                    [
+                        'relation' => 'roles',
+                    ],
+                    [
+                        'type' => 'roles',
+                        'id' => 1,
+                    ],
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `addRelated` method
+     *
+     * @return void
+     *
+     * @covers ::addRelated()
+     * @dataProvider addRelatedProvider
+     */
+    public function testAddRelated($input, $expected)
+    {
+        $this->authenticate();
+        $object = $input[0];
+        $response = $this->client->saveObject($object['type'], $object['data']);
+        $id = $response['data']['id'];
+        $type = $response['data']['type'];
+        $relation = $input[1]['relation'];
+        $relationPayload = $input[2];
+        $result = $this->client->addRelated($id, $type, $relation, $relationPayload);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+    }
+
+    /**
      * Test `saveObject` method
      *
      * @return void
