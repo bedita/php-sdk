@@ -263,32 +263,44 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testAddRelated`
+     * Data provider for `testAddRemoveRelated`
      */
-    public function addRelatedProvider()
+    public function addRemoveRelatedProvider()
     {
         return [
             'user => roles => admin' => [
                 [
+                    // new user data
                     [
                         'type' => 'users',
                         'data' => [
-                            'username' => 'johndoe',
-                            'password' => 'a9dlfG#53',
-                            'uname' => 'johndoe',
+                            'title' => 'test user',
+                            'username' => base64_encode(random_bytes(10)), // random ~14 chars
+                            'password' => base64_encode(random_bytes(10)),
+                            'uname' => base64_encode(random_bytes(10)),
                         ],
                     ],
+                    // the relation
                     [
                         'relation' => 'roles',
                     ],
+                    // the role data
                     [
                         'type' => 'roles',
                         'id' => 1,
                     ],
                 ],
                 [
-                    'code' => 200,
-                    'message' => 'OK',
+                    // expected response from addRelated
+                    [
+                        'code' => 200,
+                        'message' => 'OK',
+                    ],
+                    // expected response from removeRelated
+                    [
+                        'code' => 200,
+                        'message' => 'OK',
+                    ],
                 ],
             ],
         ];
@@ -300,20 +312,68 @@ class BEditaClientTest extends TestCase
      * @return void
      *
      * @covers ::addRelated()
-     * @dataProvider addRelatedProvider
+     * @covers ::removeRelated()
+     * @dataProvider addRemoveRelatedProvider
      */
-    public function testAddRelated($input, $expected)
+    public function testAddRemoveRelated($input, $expected)
     {
         $this->authenticate();
+
+        // create object
         $object = $input[0];
         $response = $this->client->saveObject($object['type'], $object['data']);
+
+        // add related
         $id = $response['data']['id'];
         $type = $response['data']['type'];
         $relation = $input[1]['relation'];
         $relationPayload = $input[2];
         $result = $this->client->addRelated($id, $type, $relation, $relationPayload);
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
+
+        // remove related
+        $result = $this->client->removeRelated($id, $type, $relation, $relationPayload);
+        static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
+
+        // delete object
+        $response = $this->client->deleteObject($id, $type);
+    }
+
+    /**
+     * Data provider for `testAddRemoveRelated`
+     */
+    public function saveDeleteProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                [
+                    // expected response from saveObject new
+                    [
+                        'code' => 201,
+                        'message' => 'Created',
+                    ],
+                    // expected response from saveObject update
+                    [
+                        'code' => 200,
+                        'message' => 'OK',
+                    ],
+                    // expected response from deleteObject
+                    [
+                        'code' => 204,
+                        'message' => 'No Content',
+                    ],
+                ],
+            ],
+        ];
     }
 
     /**
@@ -322,31 +382,38 @@ class BEditaClientTest extends TestCase
      * @return void
      *
      * @covers ::saveObject()
+     * @covers ::deleteObject()
+     * @dataProvider saveDeleteProvider
      */
-    public function testSaveObject()
+    public function testSaveDeleteObject($input, $expected)
     {
         $this->authenticate();
-        $data = [
-            'title' => 'A title',
-        ];
-        $response = $this->client->saveObject('documents', $data);
-        static::assertEquals(201, $this->client->getStatusCode());
-        static::assertEquals('Created', $this->client->getStatusMessage());
+
+        // save new object
+        $response = $this->client->saveObject($input['type'], $input['data']);
+        static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
         static::assertNotEmpty($response);
         static::assertArrayHasKey('data', $response);
         static::assertNotEmpty($response['data']['id']);
 
-        $data = [
-            'id' => $response['data']['id'],
-            'title' => 'A new title',
-        ];
-        $response = $this->client->saveObject('documents', $data);
-        static::assertEquals(200, $this->client->getStatusCode());
-        static::assertEquals('OK', $this->client->getStatusMessage());
+        // update object
+        $input['data']['id'] = $response['data']['id'];
+        $input['data']['title'] = 'A new title';
+        $response = $this->client->saveObject($input['type'], $input['data']);
+        static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
         static::assertNotEmpty($response);
         static::assertArrayHasKey('data', $response);
         static::assertArrayHasKey('attributes', $response['data']);
-        static::assertEquals($data['title'], $response['data']['attributes']['title']);
+        static::assertEquals($input['data']['title'], $response['data']['attributes']['title']);
+
+        // delete object
+        $id = $response['data']['id'];
+        $type = $response['data']['type'];
+        $response = $this->client->deleteObject($id, $type);
+        static::assertEquals($expected[2]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[2]['message'], $this->client->getStatusMessage());
     }
 
     /**
