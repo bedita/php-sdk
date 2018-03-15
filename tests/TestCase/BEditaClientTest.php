@@ -339,6 +339,9 @@ class BEditaClientTest extends TestCase
 
         // delete object
         $response = $this->client->deleteObject($id, $type);
+
+        // permanently remove object
+        $response = $this->client->remove($id);
     }
 
     /**
@@ -371,6 +374,11 @@ class BEditaClientTest extends TestCase
                         'code' => 204,
                         'message' => 'No Content',
                     ],
+                    // expected response from remove
+                    [
+                        'code' => 204,
+                        'message' => 'No Content',
+                    ],
                 ],
             ],
         ];
@@ -383,6 +391,7 @@ class BEditaClientTest extends TestCase
      *
      * @covers ::saveObject()
      * @covers ::deleteObject()
+     * @covers ::remove()
      * @dataProvider saveDeleteProvider
      */
     public function testSaveDeleteObject($input, $expected)
@@ -414,6 +423,11 @@ class BEditaClientTest extends TestCase
         $response = $this->client->deleteObject($id, $type);
         static::assertEquals($expected[2]['code'], $this->client->getStatusCode());
         static::assertEquals($expected[2]['message'], $this->client->getStatusMessage());
+
+        // permanently remove object
+        $response = $this->client->remove($id);
+        static::assertEquals($expected[3]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[3]['message'], $this->client->getStatusMessage());
     }
 
     /**
