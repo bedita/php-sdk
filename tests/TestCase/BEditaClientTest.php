@@ -345,106 +345,6 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testAddRemoveRelated`
-     */
-    public function saveDeleteProvider()
-    {
-        return [
-            'document' => [
-                [
-                    // new document data
-                    'type' => 'documents',
-                    'data' => [
-                        'title' => 'this is a test document',
-                    ],
-                ],
-                [
-                    // expected response from saveObject new
-                    [
-                        'code' => 201,
-                        'message' => 'Created',
-                    ],
-                    // expected response from saveObject update
-                    [
-                        'code' => 200,
-                        'message' => 'OK',
-                    ],
-                    // expected response from deleteObject
-                    [
-                        'code' => 204,
-                        'message' => 'No Content',
-                    ],
-                    // expected response from restoreObject
-                    [
-                        'code' => 204,
-                        'message' => 'No Content',
-                    ],
-                    // expected response from remove
-                    [
-                        'code' => 204,
-                        'message' => 'No Content',
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `saveObject` method
-     *
-     * @return void
-     *
-     * @covers ::saveObject()
-     * @covers ::deleteObject()
-     * @covers ::restoreObject()
-     * @covers ::remove()
-     * @dataProvider saveDeleteProvider
-     */
-    public function testSaveDeleteObject($input, $expected)
-    {
-        $this->authenticate();
-
-        // save new object
-        $response = $this->client->saveObject($input['type'], $input['data']);
-        static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
-        static::assertNotEmpty($response);
-        static::assertArrayHasKey('data', $response);
-        static::assertNotEmpty($response['data']['id']);
-
-        // update object
-        $input['data']['id'] = $response['data']['id'];
-        $input['data']['title'] = 'A new title';
-        $response = $this->client->saveObject($input['type'], $input['data']);
-        static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
-        static::assertNotEmpty($response);
-        static::assertArrayHasKey('data', $response);
-        static::assertArrayHasKey('attributes', $response['data']);
-        static::assertEquals($input['data']['title'], $response['data']['attributes']['title']);
-
-        // delete object
-        $id = $response['data']['id'];
-        $type = $response['data']['type'];
-        $response = $this->client->deleteObject($id, $type);
-        static::assertEquals($expected[2]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[2]['message'], $this->client->getStatusMessage());
-
-        // restore object
-        $response = $this->client->restoreObject($id, $type);
-        static::assertEquals($expected[3]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[3]['message'], $this->client->getStatusMessage());
-
-        // delete again the object (previously restored)
-        $response = $this->client->deleteObject($id, $type);
-
-        // permanently remove object
-        $response = $this->client->remove($id);
-        static::assertEquals($expected[4]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[4]['message'], $this->client->getStatusMessage());
-    }
-
-    /**
      * Test `upload` and `createMediaFromStream` methods
      *
      * @return void
@@ -568,5 +468,385 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('data', $result);
         static::assertArrayHasKey('attributes', $result['data']);
         static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
+    }
+
+    /**
+     * Data provider for `testSaveObject`
+     */
+    public function saveObjectProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                [
+                    [
+                        'code' => 201,
+                        'message' => 'Created',
+                    ],
+                    [
+                        'code' => 200,
+                        'message' => 'OK',
+                    ],
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Test `saveObject`.
+     *
+     * @param mixed $input Input data for save
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider saveObjectProvider
+     * @covers ::saveObject()
+     */
+    public function testSaveObject($input, $expected)
+    {
+        $this->authenticate();
+
+        // create
+        $response = $this->client->saveObject($input['type'], $input['data']);
+        static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertNotEmpty($response['data']['id']);
+        static::assertEquals($input['data']['title'], $response['data']['attributes']['title']);
+
+        // update
+        $input['data']['id'] = $response['data']['id'];
+        $newtitle = 'This is a new title';
+        $input['data']['title'] = $newtitle;
+        $response = $this->client->saveObject($input['type'], $input['data']);
+        static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
+        static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertNotEmpty($response['data']['id']);
+        static::assertEquals($newtitle, $response['data']['attributes']['title']);
+    }
+
+    /**
+     * Data provider for `testDeleteObject`
+     */
+    public function deleteObjectProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                [
+                    'code' => 204,
+                    'message' => 'No Content',
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Test `deleteObject`.
+     *
+     * @param mixed $input Input data for delete
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider deleteObjectProvider
+     * @covers ::deleteObject()
+     */
+    public function testDeleteObject($input, $expected)
+    {
+        $this->authenticate();
+
+        $response = $this->client->deleteObject($this->newObject($input), $input['type']);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Data provider for `testRestoreObject`
+     */
+    public function restoreObjectProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                [
+                    'code' => 204,
+                    'message' => 'No Content',
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Test `restoreObject`.
+     *
+     * @param mixed $input Input data for restore
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider restoreObjectProvider
+     * @covers ::restoreObject()
+     */
+    public function testRestoreObject($input, $expected)
+    {
+        $this->authenticate();
+
+        $id = $this->newObject($input);
+        $this->client->deleteObject($id, $input['type']);
+        $response = $this->client->restoreObject($id, $input['type']);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Data provider for `testRemove`
+     */
+    public function removeProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                [
+                    'code' => 204,
+                    'message' => 'No Content',
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Test `remove`.
+     *
+     * @param mixed $input Input data for remove
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider removeProvider
+     * @covers ::remove()
+     */
+    public function testRemove($input, $expected)
+    {
+        $this->authenticate();
+
+        $id = $this->newObject($input);
+        $this->client->deleteObject($id, $input['type']);
+        $response = $this->client->remove($id);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Data provider for `testPost`
+     */
+    public function postProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                // expected response from post
+                [
+                    'code' => 201,
+                    'message' => 'Created',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `post`.
+     *
+     * @param mixed $input Input data for post
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider postProvider
+     * @covers ::post()
+     */
+    public function testPost($input, $expected)
+    {
+        $this->authenticate();
+
+        $type = $input['type'];
+        $body = [
+            'data' => [
+                'type' => $type,
+                'attributes' => $input['data'],
+            ],
+        ];
+        $response = $this->client->post(sprintf('/%s', $type), json_encode($body));
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertNotEmpty($response['data']['id']);
+    }
+
+    /**
+     * Data provider for `testPatch`
+     */
+    public function patchProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                // expected response from patch
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `patch`.
+     *
+     * @param mixed $input Input data for patch
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider patchProvider
+     * @covers ::patch()
+     */
+    public function testPatch($input, $expected)
+    {
+        $this->authenticate();
+
+        $type = $input['type'];
+        $title = $input['data']['title'];
+        $input['data']['title'] = 'another title before patch';
+        $response = $this->client->saveObject($type, $input['data']);
+        $id = $response['data']['id'];
+        $input['data']['title'] = $title;
+        $body = [
+            'data' => [
+                'id' => $id,
+                'type' => $type,
+                'attributes' => $input['data'],
+            ],
+        ];
+        $response = $this->client->patch(sprintf('/%s/%s', $type, $id), json_encode($body));
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('data', $response);
+        static::assertNotEmpty($response['data']['id']);
+    }
+
+    /**
+     * Data provider for `testDelete`
+     */
+    public function deleteProvider()
+    {
+        return [
+            'document' => [
+                [
+                    // new document data
+                    'type' => 'documents',
+                    'data' => [
+                        'title' => 'this is a test document',
+                    ],
+                ],
+                // expected response from delete
+                [
+                    'code' => 204,
+                    'message' => 'No Content',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `delete`.
+     *
+     * @param mixed $input Input data for delete
+     * @param mixed $expected Expected result
+     * @return void
+     *
+     * @dataProvider deleteProvider
+     * @covers ::delete()
+     */
+    public function testDelete($input, $expected)
+    {
+        $this->authenticate();
+
+        $type = $input['type'];
+        $response = $this->client->saveObject($type, $input['data']);
+        $id = $response['data']['id'];
+        $response = $this->client->delete(sprintf('/%s/%s', $type, $id));
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Test `schema`.
+     *
+     * @return void
+     *
+     * @covers ::schema()
+     */
+    public function testSchema()
+    {
+        $this->authenticate();
+
+        $response = $this->client->schema('documents');
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+    }
+
+    /**
+     * Create new object for test purposes.
+     *
+     * @param array $input The input data.
+     * @return int|string the Id.
+     */
+    private function newObject($input)
+    {
+        $response = $this->client->saveObject($input['type'], $input['data']);
+
+        return $response['data']['id'];
     }
 }
