@@ -15,6 +15,22 @@ namespace BEdita\SDK\Test\TestCase;
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+
+/**
+ * A simple class that extends BEditaClient.
+ * Used to test protected methods.
+ */
+class MyBEditaClient extends BEditaClient
+{
+    /**
+     * @inheritDoc
+     */
+    public function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : \Psr\Http\Message\ResponseInterface
+    {
+        return parent::sendRequestRetry($method, $path, $query, $headers, $body);
+    }
+}
 
 /**
  * \BEdita\SDK\BEditaClient Test Case
@@ -59,6 +75,13 @@ class BEditaClientTest extends TestCase
     private $client = null;
 
     /**
+     * Test client class for protected methods testing
+     *
+     * @var \BEdita\SDK\Test\TestCase\MyBEditaClient
+     */
+    private $myclient = null;
+
+    /**
      * {@inheritDoc}
      */
     public function setUp()
@@ -70,6 +93,7 @@ class BEditaClientTest extends TestCase
         $this->adminUser = getenv('BEDITA_ADMIN_USR');
         $this->adminPassword = getenv('BEDITA_ADMIN_PWD');
         $this->client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
+        $this->myclient = new MyBEditaClient($this->apiBaseUrl, $this->apiKey);
     }
 
     /**
@@ -835,6 +859,70 @@ class BEditaClientTest extends TestCase
         static::assertEquals(200, $this->client->getStatusCode());
         static::assertEquals('OK', $this->client->getStatusMessage());
         static::assertNotEmpty($response);
+    }
+
+    /**
+     * Data provider for `testDelete`
+     */
+    public function responseBodyProvider()
+    {
+        return [
+            'get users' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['data', 'links', 'meta'],
+                ],
+            ],
+            'get unexisting user' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users/9999999',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                new BEditaClientException('[404] Record not found in table "users"', 404),
+            ],
+        ];
+    }
+
+    /**
+     * Test `getResponseBody`.
+     *
+     * @return void
+     *
+     * @covers ::getResponseBody()
+     * @dataProvider responseBodyProvider()
+     */
+    public function testGetResponseBody($input, $expected)
+    {
+        $response = $this->myclient->authenticate($this->adminUser, $this->adminPassword);
+        $this->myclient->setupTokens($response['meta']);
+
+        $exception = ($expected instanceof \Exception);
+        if ($exception) {
+            static::expectException(get_class($expected));
+            static::expectExceptionCode($expected->getCode());
+            static::expectExceptionMessage($expected->getMessage());
+        }
+        $this->myclient->sendRequestRetry($input['method'], $input['path']);
+        $response = $this->myclient->getResponseBody();
+        if (!$exception) {
+            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+            static::assertNotEmpty($response);
+            foreach ($expected['fields'] as $key => $val) {
+                static::assertNotEmpty($response[$val]);
+            }
+        }
     }
 
     /**
