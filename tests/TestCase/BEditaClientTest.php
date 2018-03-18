@@ -30,6 +30,14 @@ class MyBEditaClient extends BEditaClient
     {
         return parent::sendRequestRetry($method, $path, $query, $headers, $body);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : \Psr\Http\Message\ResponseInterface
+    {
+        return parent::sendRequest($method, $path, $query, $headers, $body);
+    }
 }
 
 /**
@@ -922,6 +930,198 @@ class BEditaClientTest extends TestCase
             foreach ($expected['fields'] as $key => $val) {
                 static::assertNotEmpty($response[$val]);
             }
+        }
+    }
+
+    /**
+     * Data provider for `testSendRequest`
+     */
+    public function sendRequestProvider()
+    {
+        return [
+            'get users' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['data', 'links', 'meta'],
+                ],
+            ],
+            'get users bad query' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users/a/b/c',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                new BEditaClientException('[404] Controller class Users could not be found', 404),
+            ],
+        ];
+    }
+
+    /**
+     * Test `sendRequest`.
+     *
+     * @return void
+     *
+     * @covers ::sendRequest()
+     * @dataProvider sendRequestProvider()
+     */
+    public function testSendRequest($input, $expected)
+    {
+        $exception = ($expected instanceof \Exception);
+        if ($exception) {
+            static::expectException(get_class($expected));
+            static::expectExceptionCode($expected->getCode());
+            static::expectExceptionMessage($expected->getMessage());
+        }
+        $method = $input['method'];
+        $path = $input['path'];
+        $query = $input['query'];
+        $headers = $input['headers'];
+        $body = $input['body'];
+        $response = $this->myclient->sendRequest($method, $path, $query, $headers, $body);
+        if (!$exception) {
+            $responseBody = json_decode((string)$response->getBody(), true);
+            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+            static::assertNotEmpty($responseBody);
+            foreach ($expected['fields'] as $key => $val) {
+                static::assertNotEmpty($responseBody[$val]);
+            }
+        }
+    }
+
+    /**
+     * Data provider for `testSendRequestRetry`
+     */
+    public function sendRequestRetryProvider()
+    {
+        return [
+            'get users' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['data', 'links', 'meta'],
+                ],
+            ],
+            'get users bad query' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users/a/b/c',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                new BEditaClientException('[404] Controller class Users could not be found', 404),
+            ],
+        ];
+    }
+
+    /**
+     * Test `sendRequestRetry`.
+     *
+     * @return void
+     *
+     * @covers ::sendRequestRetry()
+     * @dataProvider sendRequestRetryProvider()
+     */
+    public function testSendRequestRetry($input, $expected)
+    {
+        $exception = ($expected instanceof \Exception);
+        if ($exception) {
+            static::expectException(get_class($expected));
+            static::expectExceptionCode($expected->getCode());
+            static::expectExceptionMessage($expected->getMessage());
+        }
+        $method = $input['method'];
+        $path = $input['path'];
+        $query = $input['query'];
+        $headers = $input['headers'];
+        $body = $input['body'];
+        $response = $this->myclient->sendRequestRetry($method, $path, $query, $headers, $body);
+        if (!$exception) {
+            $responseBody = json_decode((string)$response->getBody(), true);
+            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+            static::assertNotEmpty($responseBody);
+            if (!empty($expected['fields'])) {
+                foreach ($expected['fields'] as $key => $val) {
+                    static::assertNotEmpty($responseBody[$val]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Data provider for `testRefreshTokens`
+     */
+    public function refreshTokensProvider()
+    {
+        return [
+            'renew token as not logged' => [
+                ['authenticate' => false],
+                new \BadMethodCallException('You must be logged in to renew token'),
+            ],
+            'wrong renew token' => [
+                ['authenticate' => true, 'token' => true ],
+                new BEditaClientException('[401] Wrong number of segments', 401),
+            ],
+            'renew token as logged' => [
+                ['authenticate' => true],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test `refreshTokens`.
+     *
+     * @return void
+     *
+     * @covers ::refreshTokens()
+     * @dataProvider refreshTokensProvider()
+     */
+    public function testRefreshTokens($input, $expected)
+    {
+        $exception = ($expected instanceof \Exception);
+        if ($exception) {
+            static::expectException(get_class($expected));
+            static::expectExceptionCode($expected->getCode());
+            static::expectExceptionMessage($expected->getMessage());
+        }
+        if ($input['authenticate'] === true) {
+            $this->authenticate();
+        }
+        if (!empty($input['token'])) {
+            $token = [
+                'jwt' => $input['token'],
+                'renew' => $input['token'],
+            ];
+            $this->client->setupTokens($token);
+        }
+        $response = $this->client->refreshTokens();
+        if (!$exception) {
+            static::assertEquals($expected['code'], $this->client->getStatusCode());
+            static::assertEquals($expected['message'], $this->client->getStatusMessage());
+            static::assertEmpty($response);
         }
     }
 

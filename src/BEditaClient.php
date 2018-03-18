@@ -151,10 +151,10 @@ class BEditaClient
     /**
      * Get last HTTP response
      *
-     * @return ResponseInterface Response PSR interface
+     * @return ResponseInterface|null Response PSR interface
      * @codeCoverageIgnore
      */
-    public function getResponse() : ResponseInterface
+    public function getResponse() : ?ResponseInterface
     {
         return $this->response;
     }
@@ -188,10 +188,11 @@ class BEditaClient
      */
     public function getResponseBody() : ?array
     {
-        if (empty($this->response)) {
+        $response = $this->getResponse();
+        if (empty($response)) {
             return null;
         }
-        $responseBody = json_decode((string)$this->response->getBody(), true);
+        $responseBody = json_decode((string)$response->getBody(), true);
         if (!is_array($responseBody)) {
             return null;
         }
