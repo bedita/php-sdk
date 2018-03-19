@@ -897,7 +897,7 @@ class BEditaClientTest extends TestCase
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('[404] Record not found in table "users"', 404),
+                new BEditaClientException('[404] Not Found', 404),
             ],
         ];
     }
@@ -919,7 +919,6 @@ class BEditaClientTest extends TestCase
         if ($exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
-            static::expectExceptionMessage($expected->getMessage());
         }
         $this->myclient->sendRequestRetry($input['method'], $input['path']);
         $response = $this->myclient->getResponseBody();
@@ -961,7 +960,7 @@ class BEditaClientTest extends TestCase
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('[404] Controller class Users could not be found', 404),
+                new BEditaClientException('[404] Not Found', 404),
             ],
         ];
     }
@@ -980,7 +979,6 @@ class BEditaClientTest extends TestCase
         if ($exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
-            static::expectExceptionMessage($expected->getMessage());
         }
         $method = $input['method'];
         $path = $input['path'];
@@ -1027,7 +1025,7 @@ class BEditaClientTest extends TestCase
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('[404] Controller class Users could not be found', 404),
+                new BEditaClientException('[404] Not Found', 404),
             ],
         ];
     }
@@ -1046,7 +1044,6 @@ class BEditaClientTest extends TestCase
         if ($exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
-            static::expectExceptionMessage($expected->getMessage());
         }
         $method = $input['method'];
         $path = $input['path'];
