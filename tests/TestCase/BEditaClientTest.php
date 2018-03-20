@@ -279,6 +279,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `getRelated` method
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::getRelated()
@@ -341,6 +343,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `addRelated` method
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::addRelated()
@@ -905,6 +909,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `getResponseBody`.
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::getResponseBody()
@@ -914,21 +920,17 @@ class BEditaClientTest extends TestCase
     {
         $response = $this->myclient->authenticate($this->adminUser, $this->adminPassword);
         $this->myclient->setupTokens($response['meta']);
-
-        $exception = ($expected instanceof \Exception);
-        if ($exception) {
+        if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
         }
         $this->myclient->sendRequestRetry($input['method'], $input['path']);
         $response = $this->myclient->getResponseBody();
-        if (!$exception) {
-            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-            static::assertNotEmpty($response);
-            foreach ($expected['fields'] as $key => $val) {
-                static::assertNotEmpty($response[$val]);
-            }
+        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+        static::assertNotEmpty($response);
+        foreach ($expected['fields'] as $key => $val) {
+            static::assertNotEmpty($response[$val]);
         }
     }
 
@@ -968,6 +970,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `sendRequest`.
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::sendRequest()
@@ -975,8 +979,7 @@ class BEditaClientTest extends TestCase
      */
     public function testSendRequest($input, $expected)
     {
-        $exception = ($expected instanceof \Exception);
-        if ($exception) {
+        if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
         }
@@ -986,14 +989,12 @@ class BEditaClientTest extends TestCase
         $headers = $input['headers'];
         $body = $input['body'];
         $response = $this->myclient->sendRequest($method, $path, $query, $headers, $body);
-        if (!$exception) {
-            $responseBody = json_decode((string)$response->getBody(), true);
-            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-            static::assertNotEmpty($responseBody);
-            foreach ($expected['fields'] as $key => $val) {
-                static::assertNotEmpty($responseBody[$val]);
-            }
+        $responseBody = json_decode((string)$response->getBody(), true);
+        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+        static::assertNotEmpty($responseBody);
+        foreach ($expected['fields'] as $key => $val) {
+            static::assertNotEmpty($responseBody[$val]);
         }
     }
 
@@ -1033,6 +1034,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `sendRequestRetry`.
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::sendRequestRetry()
@@ -1040,8 +1043,7 @@ class BEditaClientTest extends TestCase
      */
     public function testSendRequestRetry($input, $expected)
     {
-        $exception = ($expected instanceof \Exception);
-        if ($exception) {
+        if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
         }
@@ -1051,15 +1053,13 @@ class BEditaClientTest extends TestCase
         $headers = $input['headers'];
         $body = $input['body'];
         $response = $this->myclient->sendRequestRetry($method, $path, $query, $headers, $body);
-        if (!$exception) {
-            $responseBody = json_decode((string)$response->getBody(), true);
-            static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-            static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-            static::assertNotEmpty($responseBody);
-            if (!empty($expected['fields'])) {
-                foreach ($expected['fields'] as $key => $val) {
-                    static::assertNotEmpty($responseBody[$val]);
-                }
+        $responseBody = json_decode((string)$response->getBody(), true);
+        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+        static::assertNotEmpty($responseBody);
+        if (!empty($expected['fields'])) {
+            foreach ($expected['fields'] as $key => $val) {
+                static::assertNotEmpty($responseBody[$val]);
             }
         }
     }
@@ -1091,6 +1091,8 @@ class BEditaClientTest extends TestCase
     /**
      * Test `refreshTokens`.
      *
+     * @param mixed $input Input data
+     * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::refreshTokens()
@@ -1098,8 +1100,7 @@ class BEditaClientTest extends TestCase
      */
     public function testRefreshTokens($input, $expected)
     {
-        $exception = ($expected instanceof \Exception);
-        if ($exception) {
+        if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
             static::expectExceptionMessage($expected->getMessage());
@@ -1115,11 +1116,9 @@ class BEditaClientTest extends TestCase
             $this->client->setupTokens($token);
         }
         $response = $this->client->refreshTokens();
-        if (!$exception) {
-            static::assertEquals($expected['code'], $this->client->getStatusCode());
-            static::assertEquals($expected['message'], $this->client->getStatusMessage());
-            static::assertEmpty($response);
-        }
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
     }
 
     /**
