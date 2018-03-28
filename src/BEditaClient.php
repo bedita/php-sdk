@@ -420,6 +420,7 @@ class BEditaClient
      *          thumbs(123, ['preset' => 'glide']) => `GET /media/thumbs/123&preset=glide`
      *          thumbs(null, ['ids' => '123,124,125']) => `GET /media/thumbs?ids=123,124,125`
      *          thumbs(null, ['ids' => '123,124,125', 'preset' => 'async']) => `GET /media/thumbs?ids=123,124,125&preset=async`
+     *          thumbs(123, ['w' => 100, 'h' => 80, 'fm' => 'jpg']) => `GET /media/thumbs/123/w=100&h=80&fm=jpg` (these options could be not available... just set in preset(s))
      *
      * @param int|null $id the media Id.
      * @param array $query The query params for thumbs call.
