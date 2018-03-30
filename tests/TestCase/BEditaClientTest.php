@@ -507,6 +507,67 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Test `thumbs` method
+     *
+     * @return void
+     * @covers ::thumbs()
+     */
+    public function testThumbs()
+    {
+        $this->authenticate();
+
+        // create 2 images
+        $id1 = $this->_image();
+        $id2 = $this->_image();
+        $ids = [$id1, $id2];
+
+        // test thumbs(:id, :query)
+        $query = ['preset' => 'default'];
+        foreach ($ids as $id) {
+            $response = $this->client->thumbs($id, $query);
+            static::assertNotEmpty($response['meta']);
+            static::assertNotEmpty($response['meta']['thumbnails']);
+        }
+
+        // test thumbs(null, ['ids' =< :ids])
+        $query = ['ids' => implode(",", $ids)];
+        $response = $this->client->thumbs(null, $query);
+        static::assertNotEmpty($response['meta']);
+        static::assertNotEmpty($response['meta']['thumbnails']);
+
+        // test thumbs() -> exception
+        $exception = new BEditaClientException('Invalid empty id|ids for thumbs');
+        static::expectException(get_class($exception));
+        static::expectExceptionMessage($exception->getMessage());
+        $response = $this->client->thumbs();
+    }
+
+    /**
+     * Create image and media stream for test.
+     * Return id
+     *
+     * @return int The image ID.
+     */
+    private function _image()
+    {
+        $filename = 'test.png';
+        $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
+        $response = $this->client->upload($filename, $filepath);
+
+        $streamId = $response['data']['id'];
+        $response = $this->client->get(sprintf('/streams/%s', $streamId));
+
+        $type = 'images';
+        $title = 'The test image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $response = $this->client->createMediaFromStream($streamId, $type, $body);
+
+        return $response['data']['id'];
+    }
+
+    /**
      * Data provider for `testSaveObject`
      */
     public function saveObjectProvider()

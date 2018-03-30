@@ -367,7 +367,7 @@ class BEditaClient
      * @return array|null Response in array format
      * @throws BEditaClientException
      */
-    public function upload($filename, $filepath, ?array $headers = null) : array
+    public function upload($filename, $filepath, ?array $headers = null) : ?array
     {
         if (!file_exists($filepath)) {
             throw new BEditaClientException('File not found', 500);
@@ -410,6 +410,33 @@ class BEditaClient
         }
 
         return $this->getObject($data['id'], $data['type']);
+    }
+
+    /**
+     * Thumbnail request using `GET /media/thumbs` endpoint
+     *
+     *  Usage:
+     *          thumbs(123) => `GET /media/thumbs/123`
+     *          thumbs(123, ['preset' => 'glide']) => `GET /media/thumbs/123&preset=glide`
+     *          thumbs(null, ['ids' => '123,124,125']) => `GET /media/thumbs?ids=123,124,125`
+     *          thumbs(null, ['ids' => '123,124,125', 'preset' => 'async']) => `GET /media/thumbs?ids=123,124,125&preset=async`
+     *          thumbs(123, ['w' => 100, 'h' => 80, 'fm' => 'jpg']) => `GET /media/thumbs/123/w=100&h=80&fm=jpg` (these options could be not available... just set in preset(s))
+     *
+     * @param int|null $id the media Id.
+     * @param array $query The query params for thumbs call.
+     * @return array|null Response in array format
+     */
+    public function thumbs($id = null, $query = []) : ?array
+    {
+        if (empty($id) && empty($query['ids'])) {
+            throw new BEditaClientException('Invalid empty id|ids for thumbs');
+        }
+        $endpoint = '/media/thumbs';
+        if (!empty($id)) {
+            $endpoint .= sprintf('/%d', $id);
+        }
+
+        return $this->get($endpoint, $query);
     }
 
     /**
