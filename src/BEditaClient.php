@@ -550,7 +550,7 @@ class BEditaClient
      * Send a generic JSON API request and retrieve response $this->response
      *
      * @param string $method HTTP Method.
-     * @param string $path Endpoint URL path.
+     * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
      * @param array|null $query Query string parameters.
      * @param string[]|null $headers Custom request headers.
      * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
@@ -559,11 +559,7 @@ class BEditaClient
      */
     protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : ResponseInterface
     {
-        $uri = new Uri($this->apiBaseUrl);
-        $uri = $uri->withPath($uri->getPath() . '/' . $path);
-        if ($query) {
-            $uri = $uri->withQuery(http_build_query((array)$query));
-        }
+        $uri = $this->requestUri($path, $query);
         $headers = array_merge($this->defaultHeaders, (array)$headers);
 
         // set default `Content-Type` if not set and $body not empty
@@ -591,6 +587,34 @@ class BEditaClient
         }
 
         return $this->response;
+    }
+
+    /**
+     * Create request URI from path
+     *
+     * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
+     * @param array|null $query Query string parameters.
+     * @return Uri
+     */
+    protected function requestUri(string $path, ?array $query = null) : Uri
+    {
+        if (strpos($path, $this->apiBaseUrl) === 0) {
+            // allow absolute URL if request on same API base url
+            $uri = new Uri($path);
+        } else {
+            $uri = new Uri($this->apiBaseUrl);
+            // add starting '/' if missing
+            if (substr($path, 0, 1) !== '/') {
+                $path = '/' . $path;
+            }
+            $uri = $uri->withPath($uri->getPath() . $path);
+        }
+
+        if ($query) {
+            $uri = $uri->withQuery(http_build_query((array)$query));
+        }
+
+        return $uri;
     }
 
     /**

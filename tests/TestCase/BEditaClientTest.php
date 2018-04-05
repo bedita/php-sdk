@@ -1005,6 +1005,30 @@ class BEditaClientTest extends TestCase
                 [
                     'method' => 'GET',
                     'path' => '/users',
+                    'query' => ['q' => 'gustavosupporto'],
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['links', 'meta'],
+                ],
+            ],
+            'post users bad query' => [
+                [
+                    'method' => 'POST',
+                    'path' => '/users/a/b/c',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => 'body',
+                ],
+                new BEditaClientException('[404] Not Found', 404),
+            ],
+            'no start slash' => [
+                [
+                    'method' => 'GET',
+                    'path' => 'users',
                     'query' => null,
                     'headers' => null,
                     'body' => null,
@@ -1015,10 +1039,24 @@ class BEditaClientTest extends TestCase
                     'fields' => ['data', 'links', 'meta'],
                 ],
             ],
-            'get users bad query' => [
+            'get absolute' => [
                 [
                     'method' => 'GET',
-                    'path' => '/users/a/b/c',
+                    'path' => getenv('BEDITA_API') . '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['data', 'links', 'meta'],
+                ],
+            ],
+            'absolute bad path' => [
+                [
+                    'method' => 'GET',
+                    'path' => 'https://someURL',
                     'query' => null,
                     'headers' => null,
                     'body' => null,
@@ -1036,6 +1074,7 @@ class BEditaClientTest extends TestCase
      * @return void
      *
      * @covers ::sendRequest()
+     * @covers ::requestUri()
      * @dataProvider sendRequestProvider()
      */
     public function testSendRequest($input, $expected)
