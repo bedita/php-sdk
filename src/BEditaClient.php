@@ -571,19 +571,10 @@ class BEditaClient
         $this->response = $this->jsonApiClient->sendRequest(new Request($method, $uri, $headers, $body));
         if ($this->getStatusCode() >= 400) {
             // Something bad just happened.
-            $statusCode = $this->getStatusCode();
             $response = $this->getResponseBody();
-
-            $code = (string)$statusCode;
-            $reason = $this->getStatusMessage();
-            if (!empty($response['error']['code'])) {
-                $code = $response['error']['code'];
-            }
-            if (!empty($response['error']['title'])) {
-                $reason = $response['error']['title'];
-            }
-
-            throw new BEditaClientException(compact('code', 'reason'), $statusCode);
+            // Message will be 'error` array, if absent use status massage
+            $message = empty($response['error']) ? $this->getStatusMessage() : $response['error'];
+            throw new BEditaClientException($message, $this->getStatusCode());
         }
 
         return $this->response;
