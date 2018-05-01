@@ -367,7 +367,7 @@ class BEditaClient
      * @return array|null Response in array format
      * @throws BEditaClientException
      */
-    public function upload($filename, $filepath, ?array $headers = null) : ?array
+    public function upload(string $filename, string $filepath, ?array $headers = null) : ?array
     {
         if (!file_exists($filepath)) {
             throw new BEditaClientException('File not found', 500);
@@ -395,7 +395,7 @@ class BEditaClient
      * @return array|null Response in array format
      * @throws BEditaClientException
      */
-    public function createMediaFromStream($streamId, $type, $body) : array
+    public function createMediaFromStream($streamId, string $type, array $body) : ?array
     {
         $response = $this->post(sprintf('/%s', $type), json_encode($body));
         if (empty($response)) {
