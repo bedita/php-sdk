@@ -1082,6 +1082,7 @@ class BEditaClientTest extends TestCase
         if ($expected instanceof \Exception) {
             static::expectException(get_class($expected));
             static::expectExceptionCode($expected->getCode());
+            static::expectExceptionMessage($expected->getMessage());
         }
         $method = $input['method'];
         $path = $input['path'];

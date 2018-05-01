@@ -420,7 +420,7 @@ class BEditaClient
      *          thumbs(123, ['preset' => 'glide']) => `GET /media/thumbs/123&preset=glide`
      *          thumbs(null, ['ids' => '123,124,125']) => `GET /media/thumbs?ids=123,124,125`
      *          thumbs(null, ['ids' => '123,124,125', 'preset' => 'async']) => `GET /media/thumbs?ids=123,124,125&preset=async`
-     *          thumbs(123, ['w' => 100, 'h' => 80, 'fm' => 'jpg']) => `GET /media/thumbs/123/w=100&h=80&fm=jpg` (these options could be not available... just set in preset(s))
+     *          thumbs(123, ['options' => ['w' => 100, 'h' => 80, 'fm' => 'jpg']]) => `GET /media/thumbs/123/options[w]=100&options[h]=80&options[fm]=jpg` (these options could be not available... just set in preset(s))
      *
      * @param int|null $id the media Id.
      * @param array $query The query params for thumbs call.
@@ -571,19 +571,10 @@ class BEditaClient
         $this->response = $this->jsonApiClient->sendRequest(new Request($method, $uri, $headers, $body));
         if ($this->getStatusCode() >= 400) {
             // Something bad just happened.
-            $statusCode = $this->getStatusCode();
             $response = $this->getResponseBody();
-
-            $code = (string)$statusCode;
-            $reason = $this->getStatusMessage();
-            if (!empty($response['error']['code'])) {
-                $code = $response['error']['code'];
-            }
-            if (!empty($response['error']['title'])) {
-                $reason = $response['error']['title'];
-            }
-
-            throw new BEditaClientException(compact('code', 'reason'), $statusCode);
+            // Message will be 'error` array, if absent use status massage
+            $message = empty($response['error']) ? $this->getStatusMessage() : $response['error'];
+            throw new BEditaClientException($message, $this->getStatusCode());
         }
 
         return $this->response;
