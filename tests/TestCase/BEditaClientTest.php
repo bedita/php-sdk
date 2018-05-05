@@ -297,44 +297,28 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testAddRemoveRelated`
+     * Data provider for `testRelated`
      */
-    public function addRemoveRelatedProvider()
+    public function relatedProvider()
     {
         return [
             'user => roles => admin' => [
+                // new object type
+                'users',
+                // objet data
                 [
-                    // new user data
-                    [
-                        'type' => 'users',
-                        'data' => [
-                            'title' => 'test user',
-                            'username' => base64_encode(random_bytes(10)), // random ~14 chars
-                            'password' => base64_encode(random_bytes(10)),
-                            'uname' => base64_encode(random_bytes(10)),
-                        ],
-                    ],
-                    // the relation
-                    [
-                        'relation' => 'roles',
-                    ],
-                    // the role data
-                    [
-                        'type' => 'roles',
-                        'id' => 1,
-                    ],
+                    'username' => base64_encode(random_bytes(10)), // random ~14 chars
                 ],
+                // the relation
+                'roles',
                 [
-                    // expected response from addRelated
-                    [
-                        'code' => 200,
-                        'message' => 'OK',
-                    ],
-                    // expected response from removeRelated
-                    [
-                        'code' => 200,
-                        'message' => 'OK',
-                    ],
+                    'type' => 'roles',
+                    'id' => 1,
+                ],
+                // expected response
+                [
+                    'code' => 200,
+                    'message' => 'OK',
                 ],
             ],
         ];
@@ -343,39 +327,54 @@ class BEditaClientTest extends TestCase
     /**
      * Test `addRelated` method
      *
-     * @param mixed $input Input data
+     * @param mixed $type Object type
+     * @param mixed $object Object data
+     * @param mixed $relation Relationship name
+     * @param mixed $data Resources/objects data to relate
      * @param mixed $expected Expected result
      * @return void
      *
      * @covers ::addRelated()
      * @covers ::removeRelated()
-     * @dataProvider addRemoveRelatedProvider
+     * @covers ::replaceRelated()
+     * @dataProvider relatedProvider
      */
-    public function testAddRemoveRelated($input, $expected)
+    public function testRelated($type, $object, $relation, $data, $expected)
     {
         $this->authenticate();
 
         // create object
-        $object = $input[0];
-        $response = $this->client->saveObject($object['type'], $object['data']);
+        $response = $this->client->saveObject($type, $object);
 
         // add related
         $id = $response['data']['id'];
-        $type = $response['data']['type'];
-        $relation = $input[1]['relation'];
-        $relationPayload = $input[2];
-        $result = $this->client->addRelated($id, $type, $relation, $relationPayload);
-        static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
+        $result = $this->client->addRelated($id, $type, $relation, $data);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+
+        $result = $this->client->getRelated($id, $type, $relation);
+        static::assertEquals(1, $result['data'][0]['id']);
+        static::assertEquals(1, count($result['data']));
 
         // remove related
-        $result = $this->client->removeRelated($id, $type, $relation, $relationPayload);
-        static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
-        static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
+        $result = $this->client->removeRelated($id, $type, $relation, $data);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+
+        $result = $this->client->getRelated($id, $type, $relation);
+        static::assertEmpty($result['data']);
+
+        // replace related
+        $result = $this->client->replaceRelated($id, $type, $relation, $data);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+
+        $result = $this->client->getRelated($id, $type, $relation);
+        static::assertEquals(1, $result['data'][0]['id']);
+        static::assertEquals(1, count($result['data']));
 
         // delete object
         $response = $this->client->deleteObject($id, $type);
-
         // permanently remove object
         $response = $this->client->remove($id);
     }
