@@ -230,7 +230,7 @@ class BEditaClient
     }
 
     /**
-     * GET a list of objects of a given type
+     * GET a list of resources or objects of a given type
      *
      * @param string $type Object type name
      * @param array|null $query Optional query string
@@ -257,10 +257,10 @@ class BEditaClient
     }
 
     /**
-     * GET a list of related objects
+     * Get a list of related resources or objects
      *
-     * @param int|string $id Object id
-     * @param string $type Object type name
+     * @param int|string $id Resource id or object uname/id
+     * @param string $type Type name
      * @param string $relation Relation name
      * @param array|null $query Optional query string
      * @param array|null $headers Custom request headers
@@ -272,10 +272,10 @@ class BEditaClient
     }
 
     /**
-     * Add a list of related objects
+     * Add a list of related resources or objects
      *
-     * @param int|string $id Object id
-     * @param string $type Object type name
+     * @param int|string $id Resource id or object uname/id
+     * @param string $type Type name
      * @param string $relation Relation name
      * @param string $data Related objects to add, MUST contain id and type
      * @param array|null $headers Custom request headers
@@ -289,10 +289,10 @@ class BEditaClient
     }
 
     /**
-     * DELETE a list of related objects
+     * Remove a list of related resources or objects
      *
-     * @param int|string $id Object id
-     * @param string $type Object type name
+     * @param int|string $id Resource id or object uname/id
+     * @param string $type Type name
      * @param string $relation Relation name
      * @param string $data Related objects to remove from relation
      * @param array|null $headers Custom request headers
@@ -303,6 +303,23 @@ class BEditaClient
         $body = compact('data');
 
         return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+    }
+
+    /**
+     * Replace a list of related objects: previuosly related are removed and replaced with these.
+     *
+     * @param int|string $id Object id
+     * @param string $type Object type name
+     * @param string $relation Relation name
+     * @param string $data Related objects to remove from relation
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     */
+    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null) : ?array
+    {
+        $body = compact('data');
+
+        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
     }
 
     /**
