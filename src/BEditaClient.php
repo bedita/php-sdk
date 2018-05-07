@@ -277,7 +277,7 @@ class BEditaClient
      * @param int|string $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
-     * @param string $data Related objects to add, MUST contain id and type
+     * @param string $data Related resources or objects to add, MUST contain id and type
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
@@ -294,7 +294,7 @@ class BEditaClient
      * @param int|string $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
-     * @param string $data Related objects to remove from relation
+     * @param string $data Related resources or objects to remove from relation
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
@@ -306,12 +306,12 @@ class BEditaClient
     }
 
     /**
-     * Replace a list of related objects: previuosly related are removed and replaced with these.
+     * Replace a list of related resources or objects: previuosly related are removed and replaced with these.
      *
      * @param int|string $id Object id
      * @param string $type Object type name
      * @param string $relation Relation name
-     * @param string $data Related objects to remove from relation
+     * @param string $data Related resources or objects to insert
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
