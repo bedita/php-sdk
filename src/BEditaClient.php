@@ -606,17 +606,13 @@ class BEditaClient
      */
     protected function requestUri(string $path, ?array $query = null) : Uri
     {
-        if (strpos($path, $this->apiBaseUrl) === 0) {
-            // allow absolute URL if request on same API base url
-            $uri = new Uri($path);
-        } else {
-            $uri = new Uri($this->apiBaseUrl);
-            // add starting '/' if missing
+        if (strpos($path, $this->apiBaseUrl) !== 0) {
             if (substr($path, 0, 1) !== '/') {
                 $path = '/' . $path;
             }
-            $uri = $uri->withPath($uri->getPath() . $path);
+            $path = $this->apiBaseUrl . $path;
         }
+        $uri = new Uri($path);
 
         // if path contains query strings, remove them from path and add them to query filter
         parse_str($uri->getQuery(), $uriQuery);
