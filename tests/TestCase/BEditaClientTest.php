@@ -1014,6 +1014,20 @@ class BEditaClientTest extends TestCase
                     'fields' => ['links', 'meta'],
                 ],
             ],
+            'get users query in path' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users?name=gustavo',
+                    'query' => ['surname' => 'supporto'],
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['links', 'meta'],
+                ],
+            ],
             'post users bad query' => [
                 [
                     'method' => 'POST',
