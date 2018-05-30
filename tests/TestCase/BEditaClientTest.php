@@ -1000,20 +1000,20 @@ class BEditaClientTest extends TestCase
     public function sendRequestProvider()
     {
         return [
-            // 'get users' => [
-            //     [
-            //         'method' => 'GET',
-            //         'path' => '/users',
-            //         'query' => ['q' => 'gustavosupporto'],
-            //         'headers' => null,
-            //         'body' => null,
-            //     ],
-            //     [
-            //         'code' => 200,
-            //         'message' => 'OK',
-            //         'fields' => ['links', 'meta'],
-            //     ],
-            // ],
+            'get users' => [
+                [
+                    'method' => 'GET',
+                    'path' => '/users',
+                    'query' => ['q' => 'gustavosupporto'],
+                    'headers' => null,
+                    'body' => null,
+                ],
+                [
+                    'code' => 200,
+                    'message' => 'OK',
+                    'fields' => ['links', 'meta'],
+                ],
+            ],
             'get users query in path' => [
                 [
                     'method' => 'GET',
