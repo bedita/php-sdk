@@ -1014,7 +1014,7 @@ class BEditaClientTest extends TestCase
                     'fields' => ['links', 'meta'],
                 ],
             ],
-            'get users' => [
+            'get users query in path' => [
                 [
                     'method' => 'GET',
                     'path' => '/users?q=gustavosupporto',
