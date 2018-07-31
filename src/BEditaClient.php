@@ -470,6 +470,19 @@ class BEditaClient
     }
 
     /**
+     *
+     * Get JSON SCHEMA of a relation
+     *
+     * @param string $type Object or resource type name
+     * @return array|null JSON SCHEMA in array format
+     */
+    public function relationSchema(string $type) : ?array
+    {
+        $h = ['Accept' => 'application/json'];
+	    return $this->get(sprintf('/model/relations/%s', $type), null, $h);
+	}
+
+    /**
      * Restore object from trash
      *
      * @param int|string $id Object id
