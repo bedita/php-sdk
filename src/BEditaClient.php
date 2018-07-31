@@ -479,8 +479,9 @@ class BEditaClient
     public function relationSchema(string $type) : ?array
     {
         $h = ['Accept' => 'application/json'];
-	    return $this->get(sprintf('/model/relations/%s', $type), null, $h);
-	}
+
+        return $this->get(sprintf('/model/relations/%s', $type), null, $h);
+    }
 
     /**
      * Restore object from trash
