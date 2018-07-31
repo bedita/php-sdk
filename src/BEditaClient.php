@@ -323,14 +323,14 @@ class BEditaClient
     }
 
     /**
-     * Create a new object (POST) or modify an existing one (PATCH)
+     * Create a new object or resource (POST) or modify an existing one (PATCH)
      *
-     * @param string $type Object type name
-     * @param array $data Object data to save
+     * @param string $type Object or resource type name
+     * @param array $data Object or resource data to save
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function saveObject(string $type, array $data, ?array $headers = null) : ?array
+    public function save(string $type, array $data, ?array $headers = null) : ?array
     {
         $id = null;
         if (array_key_exists('id', $data)) {
@@ -350,6 +350,21 @@ class BEditaClient
         $body['data']['id'] = $id;
 
         return $this->patch(sprintf('/%s/%s', $type, $id), json_encode($body), $headers);
+    }
+
+    /**
+     * [DEPRECATED] Create a new object (POST) or modify an existing one (PATCH)
+     *
+     * @param string $type Object type name
+     * @param array $data Object data to save
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     * @deprecated Use `save()` method instead
+     * @codeCoverageIgnore
+     */
+    public function saveObject(string $type, array $data, ?array $headers = null) : ?array
+    {
+        return $this->save($type, $data, $headers);
     }
 
     /**
