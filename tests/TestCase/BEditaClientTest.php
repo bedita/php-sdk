@@ -344,7 +344,7 @@ class BEditaClientTest extends TestCase
         $this->authenticate();
 
         // create object
-        $response = $this->client->saveObject($type, $object);
+        $response = $this->client->save($type, $object);
 
         // add related
         $id = $response['data']['id'];
@@ -567,9 +567,9 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testSaveObject`
+     * Data provider for `testSave`
      */
-    public function saveObjectProvider()
+    public function saveProvider()
     {
         return [
             'document' => [
@@ -595,21 +595,21 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `saveObject`.
+     * Test `save`.
      *
      * @param mixed $input Input data for save
      * @param mixed $expected Expected result
      * @return void
      *
-     * @dataProvider saveObjectProvider
-     * @covers ::saveObject()
+     * @dataProvider saveProvider
+     * @covers ::save()
      */
-    public function testSaveObject($input, $expected)
+    public function testSave($input, $expected)
     {
         $this->authenticate();
 
         // create
-        $response = $this->client->saveObject($input['type'], $input['data']);
+        $response = $this->client->save($input['type'], $input['data']);
         static::assertEquals($expected[0]['code'], $this->client->getStatusCode());
         static::assertEquals($expected[0]['message'], $this->client->getStatusMessage());
         static::assertNotEmpty($response);
@@ -621,7 +621,7 @@ class BEditaClientTest extends TestCase
         $input['data']['id'] = $response['data']['id'];
         $newtitle = 'This is a new title';
         $input['data']['title'] = $newtitle;
-        $response = $this->client->saveObject($input['type'], $input['data']);
+        $response = $this->client->save($input['type'], $input['data']);
         static::assertEquals($expected[1]['code'], $this->client->getStatusCode());
         static::assertEquals($expected[1]['message'], $this->client->getStatusMessage());
         static::assertNotEmpty($response);
@@ -852,7 +852,7 @@ class BEditaClientTest extends TestCase
         $type = $input['type'];
         $title = $input['data']['title'];
         $input['data']['title'] = 'another title before patch';
-        $response = $this->client->saveObject($type, $input['data']);
+        $response = $this->client->save($type, $input['data']);
         $id = $response['data']['id'];
         $input['data']['title'] = $title;
         $body = [
@@ -908,7 +908,7 @@ class BEditaClientTest extends TestCase
         $this->authenticate();
 
         $type = $input['type'];
-        $response = $this->client->saveObject($type, $input['data']);
+        $response = $this->client->save($type, $input['data']);
         $id = $response['data']['id'];
         $response = $this->client->delete(sprintf('/%s/%s', $type, $id));
         static::assertEquals($expected['code'], $this->client->getStatusCode());
@@ -1243,7 +1243,7 @@ class BEditaClientTest extends TestCase
      */
     private function newObject($input)
     {
-        $response = $this->client->saveObject($input['type'], $input['data']);
+        $response = $this->client->save($input['type'], $input['data']);
 
         return $response['data']['id'];
     }
