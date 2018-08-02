@@ -972,8 +972,6 @@ class BEditaClientTest extends TestCase
         static::assertEquals('OK', $this->client->getStatusMessage());
         static::assertNotEmpty($response);
         static::assertEquals($response['data']['attributes'], $data['attributes']);
-
-
     }
 
     /**
