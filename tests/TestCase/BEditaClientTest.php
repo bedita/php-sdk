@@ -934,11 +934,11 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `relationSchema`.
+     * Test `relationData`.
      *
      * @return void
      *
-     * @covers ::relationSchema()
+     * @covers ::relationData()
      */
     public function testRelationData()
     {
