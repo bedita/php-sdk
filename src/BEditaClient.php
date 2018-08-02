@@ -485,6 +485,17 @@ class BEditaClient
     }
 
     /**
+     * Get info of a relation (data, params)
+     *
+     * @param string $name relation name
+     * @return array|null relation data in array format
+     */
+    public function relationData(string $name) : ?array
+    {
+        return $this->get(sprintf('/model/relations/%s', $name));
+    }
+
+    /**
      * Restore object from trash
      *
      * @param int|string $id Object id

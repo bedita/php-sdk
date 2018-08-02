@@ -529,7 +529,7 @@ class BEditaClientTest extends TestCase
         }
 
         // test thumbs(null, ['ids' =< :ids])
-        $query = ['ids' => implode(",", $ids)];
+        $query = ['ids' => implode(',', $ids)];
         $response = $this->client->thumbs(null, $query);
         static::assertNotEmpty($response['meta']);
         static::assertNotEmpty($response['meta']['thumbnails']);
@@ -931,6 +931,47 @@ class BEditaClientTest extends TestCase
         static::assertEquals(200, $this->client->getStatusCode());
         static::assertEquals('OK', $this->client->getStatusMessage());
         static::assertNotEmpty($response);
+    }
+
+    /**
+     * Test `relationData`.
+     *
+     * @return void
+     *
+     * @covers ::relationData()
+     */
+    public function testRelationData()
+    {
+        $this->authenticate();
+
+        $schema = [
+            'properties' => [
+                'isNumber' => [
+                    'type' => 'boolean',
+                    'description' => 'custom params is boolean'
+                ]
+            ]
+        ];
+
+        $data = [
+            'type' => 'relations',
+            'attributes' => [
+                'name' => 'owner_of',
+                'label' => 'Owner of',
+                'inverse_name' => 'belongs_to',
+                'inverse_label' => 'Belongs to',
+                'description' => null,
+                'params' => $schema
+            ]
+        ];
+
+        $this->client->post('model/relations', json_encode(compact('data')));
+
+        $response = $this->client->relationData('owner_of');
+        static::assertEquals(200, $this->client->getStatusCode());
+        static::assertEquals('OK', $this->client->getStatusMessage());
+        static::assertNotEmpty($response);
+        static::assertEquals($response['data']['attributes'], $data['attributes']);
     }
 
     /**
