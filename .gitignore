@@ -3,6 +3,7 @@
 /.vagrant/*
 /composer.lock
 /tests/.env
+/tests/files/api.log
 /coverage/*
 /index.html
 /phpunit.xml

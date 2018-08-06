@@ -21,6 +21,7 @@ use WoohooLabs\Yang\JsonApi\Client\JsonApiClient;
  */
 class BEditaClient
 {
+    use LogTrait;
 
     /**
      * Last response.
@@ -611,7 +612,11 @@ class BEditaClient
         }
 
         // Send the request synchronously to retrieve the response.
-        $this->response = $this->jsonApiClient->sendRequest(new Request($method, $uri, $headers, $body));
+        // Request and response log performed only if configured via `initLogger()`
+        $request = new Request($method, $uri, $headers, $body);
+        $this->logRequest($request);
+        $this->response = $this->jsonApiClient->sendRequest($request);
+        $this->logResponse($this->response);
         if ($this->getStatusCode() >= 400) {
             // Something bad just happened.
             $response = $this->getResponseBody();
