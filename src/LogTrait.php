@@ -28,6 +28,17 @@ trait LogTrait
     protected $logger = null;
 
     /**
+     * Get configured logger, may be null
+     *
+     * @return Logger|null
+     * @codeCoverageIgnore
+     */
+    public function getLogger(): ?Logger
+    {
+        return $this->logger;
+    }
+
+    /**
      * Initialize and configure logger
      *
      * @param array $options Configuration options, 'log_file' key with log file path is mandatory
