@@ -486,14 +486,18 @@ class BEditaClient
     }
 
     /**
-     * Get info of a relation (data, params)
+     * Get info of a relation (data, params) and get left/right object types
      *
      * @param string $name relation name
      * @return array|null relation data in array format
      */
     public function relationData(string $name) : ?array
     {
-        return $this->get(sprintf('/model/relations/%s', $name));
+        $query = [
+            'include' => 'left_object_types,right_object_types',
+        ];
+
+        return $this->get(sprintf('/model/relations/%s', $name), $query);
     }
 
     /**

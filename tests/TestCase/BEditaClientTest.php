@@ -972,6 +972,9 @@ class BEditaClientTest extends TestCase
         static::assertEquals('OK', $this->client->getStatusMessage());
         static::assertNotEmpty($response);
         static::assertEquals($response['data']['attributes'], $data['attributes']);
+        // test left and right types inclusion - even if empty arrays
+        static::assertEquals([], $response['data']['relationships']['left_object_types']['data']);
+        static::assertEquals([], $response['data']['relationships']['right_object_types']['data']);
     }
 
     /**
