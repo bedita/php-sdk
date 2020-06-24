@@ -1,7 +1,7 @@
 <?php
 /**
  * BEdita, API-first content management framework
- * Copyright 2018 ChannelWeb Srl, Chialab Srl
+ * Copyright 2020 ChannelWeb Srl, Chialab Srl
  *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
@@ -687,5 +687,66 @@ class BEditaClient
         }
 
         $this->setupTokens($body['meta']);
+    }
+
+    /**
+     * Retrieve children of $uname folder, using $options (limit, order, relationships).
+     *
+     * @param string $uname The folder unique name
+     * @param array $types The types
+     * @param array $options The options to fetch data
+     * @return array
+     */
+    public function getFolderChildren(string $uname, array $types = [], array $options = []): array
+    {
+        $endpoint = sprintf('/folders/%s/children', $uname);
+        $limit = $options['limit'] ?? null;
+        $sort = $options['order'] ?? null;
+        $relationships = $options['relationships'] ?? null;
+        if (empty($types)) {
+            return $this->children($uname, $filter, $sort, $limit, $relationships);
+        }
+        $result = [];
+        foreach ($types as $type) {
+            $limit = $options['limit'][$type] ?? null;
+            $sort = $options['order'][$type] ?? null;
+            $relationships = $options['relationships'][$type] ?? null;
+            $filter = compact('type');
+            $result[$type] = $this->children($uname, $filter, $sort, $limit, $relationships);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get children of a folder specified by $uname.
+     *
+     * @param string $uname The folder unique name.
+     * @param array|null $filter The filter for query.
+     * @param string|null $sort The sorting order
+     * @param int|null $limit The limit for query
+     * @param array|null $relationships The relationships to fetch
+     * @return array
+     */
+    public function children(string $uname, array $filter = [], $sort = '-modified', int $limit = 20, array $relationships = []): array
+    {
+        $endpoint = sprintf('/folders/%s/children', $uname);
+        $children = $this->get($endpoint, compact('filter', 'limit', 'sort'));
+        if (empty($children['data'])) {
+            return $children;
+        }
+        foreach ($children['data'] as &$child) {
+            foreach ($relationships as $relation => $max) {
+                if (!is_string($relation) || !is_int($max)) {
+                    $relation = $max;
+                    $max = $limit;
+                }
+                $endpoint = sprintf('/%s/%s/%s', $child['type'], $child['id'], $relation);
+                $response = $this->get($endpoint, ['limit' => $max]);
+                $child['relationships'][$relation]['data'] = $response['data'];
+            }
+        }
+
+        return $children;
     }
 }
