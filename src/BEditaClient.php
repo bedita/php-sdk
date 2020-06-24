@@ -700,18 +700,20 @@ class BEditaClient
     public function getFolderChildren(string $uname, array $types = [], array $options = []): array
     {
         $endpoint = sprintf('/folders/%s/children', $uname);
-        $limit = $options['limit'] ?? null;
-        $sort = $options['order'] ?? null;
-        $relationships = $options['relationships'] ?? null;
         if (empty($types)) {
+            $filter = null;
+            $sort = $options['order'] ?? null;
+            $limit = $options['limit'] ?? null;
+            $relationships = $options['relationships'] ?? null;
+
             return $this->children($uname, $filter, $sort, $limit, $relationships);
         }
         $result = [];
         foreach ($types as $type) {
-            $limit = $options['limit'][$type] ?? null;
-            $sort = $options['order'][$type] ?? null;
-            $relationships = $options['relationships'][$type] ?? null;
             $filter = compact('type');
+            $sort = $options['order'][$type] ?? null;
+            $limit = $options['limit'][$type] ?? null;
+            $relationships = $options['relationships'][$type] ?? null;
             $result[$type] = $this->children($uname, $filter, $sort, $limit, $relationships);
         }
 
