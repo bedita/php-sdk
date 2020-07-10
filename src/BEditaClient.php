@@ -633,7 +633,9 @@ class BEditaClient
     }
 
     /**
-     * Create request URI from path
+     * Create request URI from path.
+     * If path is absolute, i.e. it starts with scheme protocolo 'http' or 'https' path si used as it is.
+     * Otherwise `$this->apiBaseUrl` is prefixed.
      *
      * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
      * @param array|null $query Query string parameters.
@@ -641,7 +643,7 @@ class BEditaClient
      */
     protected function requestUri(string $path, ?array $query = null) : Uri
     {
-        if (strpos($path, $this->apiBaseUrl) !== 0) {
+        if (strpos($path, 'https://') !== 0 && strpos($path, 'http://') !== 0) {
             if (substr($path, 0, 1) !== '/') {
                 $path = '/' . $path;
             }
