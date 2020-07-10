@@ -15,7 +15,6 @@ namespace BEdita\SDK\Test\TestCase;
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * A simple class that extends BEditaClient.
@@ -1110,15 +1109,15 @@ class BEditaClientTest extends TestCase
                     'fields' => ['data', 'links', 'meta'],
                 ],
             ],
-            'absolute bad path' => [
+            'absolute path with 404' => [
                 [
                     'method' => 'GET',
-                    'path' => 'https://someURL',
+                    'path' => 'http://example.com/zzzzz',
                     'query' => null,
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('[404] Not Found', 404),
+                new BEditaClientException('Not Found', 404),
             ],
         ];
     }
