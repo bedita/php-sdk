@@ -202,7 +202,7 @@ class BEditaClientTest extends TestCase
      */
     public function testAuthenticateFail()
     {
-        $expected = new BEditaClientException('[401] Login not successful');
+        $expected = new BEditaClientException('[401] Login request not successful');
         static::expectException(get_class($expected));
         static::expectExceptionMessage($expected->getMessage());
         $this->client->authenticate('baduser', 'badpassword');
