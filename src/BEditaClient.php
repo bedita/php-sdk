@@ -634,8 +634,8 @@ class BEditaClient
 
     /**
      * Create request URI from path.
-     * If path is absolute, i.e. it starts with scheme protocolo 'http' or 'https' path si used as it is.
-     * Otherwise `$this->apiBaseUrl` is prefixed.
+     * If path is absolute, i.e. it starts with 'http://' or 'https://', path is unchanged.
+     * Otherwise `$this->apiBaseUrl` is prefixed, prepending a `/` if necessary.
      *
      * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
      * @param array|null $query Query string parameters.
