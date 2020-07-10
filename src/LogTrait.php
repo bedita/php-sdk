@@ -63,7 +63,7 @@ trait LogTrait
      * @param RequestInterface $request The request to log
      * @return void
      */
-    public function logRequest(RequestInterface $request) : void
+    public function logRequest(RequestInterface $request): void
     {
         if (!$this->logger) {
             return;
@@ -85,7 +85,7 @@ trait LogTrait
      * @param RequestInterface $request The request to log
      * @return string
      */
-    protected function requestBodyCleanup(RequestInterface $request) : string
+    protected function requestBodyCleanup(RequestInterface $request): string
     {
         $body = $request->getBody();
         if (empty((string)$body)) {
@@ -111,7 +111,7 @@ trait LogTrait
      * @param RequestInterface $request The request to log
      * @return string
      */
-    protected function requestHeadersCleanup(RequestInterface $request) : string
+    protected function requestHeadersCleanup(RequestInterface $request): string
     {
         $headers = $request->getHeaders();
         foreach (['Authorization', 'X-Api-Key'] as $h) {
@@ -129,7 +129,7 @@ trait LogTrait
      * @param ResponseInterface $response The response to log
      * @return void
      */
-    public function logResponse(ResponseInterface $response) : void
+    public function logResponse(ResponseInterface $response): void
     {
         if (!$this->logger) {
             return;
@@ -151,7 +151,7 @@ trait LogTrait
      * @param ResponseInterface $response The response to log
      * @return string
      */
-    protected function responseBodyCleanup(ResponseInterface $response) : string
+    protected function responseBodyCleanup(ResponseInterface $response): string
     {
         $body = $response->getBody();
         if (empty((string)$body)) {
