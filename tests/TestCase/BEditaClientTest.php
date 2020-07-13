@@ -25,7 +25,7 @@ class MyBEditaClient extends BEditaClient
     /**
      * @inheritDoc
      */
-    public function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : \Psr\Http\Message\ResponseInterface
+    public function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): \Psr\Http\Message\ResponseInterface
     {
         return parent::sendRequestRetry($method, $path, $query, $headers, $body);
     }
@@ -33,7 +33,7 @@ class MyBEditaClient extends BEditaClient
     /**
      * @inheritDoc
      */
-    public function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : \Psr\Http\Message\ResponseInterface
+    public function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): \Psr\Http\Message\ResponseInterface
     {
         return parent::sendRequest($method, $path, $query, $headers, $body);
     }
@@ -588,8 +588,8 @@ class BEditaClientTest extends TestCase
                         'code' => 200,
                         'message' => 'OK',
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -646,8 +646,8 @@ class BEditaClientTest extends TestCase
                 [
                     'code' => 204,
                     'message' => 'No Content',
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -688,8 +688,8 @@ class BEditaClientTest extends TestCase
                 [
                     'code' => 204,
                     'message' => 'No Content',
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -732,8 +732,8 @@ class BEditaClientTest extends TestCase
                 [
                     'code' => 204,
                     'message' => 'No Content',
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -947,9 +947,9 @@ class BEditaClientTest extends TestCase
             'properties' => [
                 'isNumber' => [
                     'type' => 'boolean',
-                    'description' => 'custom params is boolean'
-                ]
-            ]
+                    'description' => 'custom params is boolean',
+                ],
+            ],
         ];
 
         $data = [
@@ -960,8 +960,8 @@ class BEditaClientTest extends TestCase
                 'inverse_name' => 'belongs_to',
                 'inverse_label' => 'Belongs to',
                 'description' => null,
-                'params' => $schema
-            ]
+                'params' => $schema,
+            ],
         ];
 
         $this->client->post('model/relations', json_encode(compact('data')));
