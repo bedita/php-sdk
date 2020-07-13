@@ -106,7 +106,7 @@ class BEditaClient
      * @param array $tokens JWT tokens as associative array ['jwt' => '###', 'renew' => '###']
      * @return void
      */
-    public function setupTokens(array $tokens) : void
+    public function setupTokens(array $tokens): void
     {
         $this->tokens = $tokens;
         if (!empty($tokens['jwt'])) {
@@ -122,7 +122,7 @@ class BEditaClient
      * @return array Default headers
      * @codeCoverageIgnore
      */
-    public function getDefaultHeaders() : array
+    public function getDefaultHeaders(): array
     {
         return $this->defaultHeaders;
     }
@@ -133,7 +133,7 @@ class BEditaClient
      * @return string API base URL
      * @codeCoverageIgnore
      */
-    public function getApiBaseUrl() : string
+    public function getApiBaseUrl(): string
     {
         return $this->apiBaseUrl;
     }
@@ -144,7 +144,7 @@ class BEditaClient
      * @return array Current tokens
      * @codeCoverageIgnore
      */
-    public function getTokens() : array
+    public function getTokens(): array
     {
         return $this->tokens;
     }
@@ -155,7 +155,7 @@ class BEditaClient
      * @return ResponseInterface|null Response PSR interface
      * @codeCoverageIgnore
      */
-    public function getResponse() : ?ResponseInterface
+    public function getResponse(): ?ResponseInterface
     {
         return $this->response;
     }
@@ -166,7 +166,7 @@ class BEditaClient
      *
      * @return int|null Status code.
      */
-    public function getStatusCode() : ?int
+    public function getStatusCode(): ?int
     {
         return $this->response ? $this->response->getStatusCode() : null;
     }
@@ -177,7 +177,7 @@ class BEditaClient
      *
      * @return string|null Message related to status code.
      */
-    public function getStatusMessage() : ?string
+    public function getStatusMessage(): ?string
     {
         return $this->response ? $this->response->getReasonPhrase() : null;
     }
@@ -187,7 +187,7 @@ class BEditaClient
      *
      * @return array|null Response body as PHP array.
      */
-    public function getResponseBody() : ?array
+    public function getResponseBody(): ?array
     {
         $response = $this->getResponse();
         if (empty($response)) {
@@ -208,7 +208,7 @@ class BEditaClient
      * @param string $password password
      * @return array|null Response in array format
      */
-    public function authenticate(string $username, string $password) : ?array
+    public function authenticate(string $username, string $password): ?array
     {
         $body = json_encode(compact('username', 'password'));
 
@@ -223,7 +223,7 @@ class BEditaClient
      * @param array|null $headers Headers
      * @return array|null Response in array format
      */
-    public function get(string $path, ?array $query = null, ?array $headers = null) : ?array
+    public function get(string $path, ?array $query = null, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('GET', $path, $query, $headers);
 
@@ -238,7 +238,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getObjects(string $type = 'objects', ?array $query = null, ?array $headers = null) : ?array
+    public function getObjects(string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
     {
         return $this->get(sprintf('/%s', $type), $query, $headers);
     }
@@ -252,7 +252,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getObject($id, string $type = 'objects', ?array $query = null, ?array $headers = null) : ?array
+    public function getObject($id, string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
     {
         return $this->get(sprintf('/%s/%s', $type, $id), $query, $headers);
     }
@@ -267,7 +267,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getRelated($id, string $type, string $relation, ?array $query = null, ?array $headers = null) : ?array
+    public function getRelated($id, string $type, string $relation, ?array $query = null, ?array $headers = null): ?array
     {
         return $this->get(sprintf('/%s/%s/%s', $type, $id, $relation), $query, $headers);
     }
@@ -282,7 +282,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function addRelated($id, string $type, string $relation, array $data, ?array $headers = null) : ?array
+    public function addRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         $body = compact('data');
 
@@ -299,7 +299,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function removeRelated($id, string $type, string $relation, array $data, ?array $headers = null) : ?array
+    public function removeRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         $body = compact('data');
 
@@ -316,7 +316,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null) : ?array
+    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         $body = compact('data');
 
@@ -331,7 +331,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function save(string $type, array $data, ?array $headers = null) : ?array
+    public function save(string $type, array $data, ?array $headers = null): ?array
     {
         $id = null;
         if (array_key_exists('id', $data)) {
@@ -363,7 +363,7 @@ class BEditaClient
      * @deprecated Use `save()` method instead
      * @codeCoverageIgnore
      */
-    public function saveObject(string $type, array $data, ?array $headers = null) : ?array
+    public function saveObject(string $type, array $data, ?array $headers = null): ?array
     {
         return $this->save($type, $data, $headers);
     }
@@ -375,7 +375,7 @@ class BEditaClient
      * @param string $type Object type name
      * @return array|null Response in array format
      */
-    public function deleteObject($id, string $type) : ?array
+    public function deleteObject($id, string $type): ?array
     {
         return $this->delete(sprintf('/%s/%s', $type, $id));
     }
@@ -386,7 +386,7 @@ class BEditaClient
      * @param int|string $id Object id
      * @return array|null Response in array format
      */
-    public function remove($id) : ?array
+    public function remove($id): ?array
     {
         return $this->delete(sprintf('/trash/%s', $id));
     }
@@ -400,7 +400,7 @@ class BEditaClient
      * @return array|null Response in array format
      * @throws BEditaClientException
      */
-    public function upload(string $filename, string $filepath, ?array $headers = null) : ?array
+    public function upload(string $filename, string $filepath, ?array $headers = null): ?array
     {
         if (!file_exists($filepath)) {
             throw new BEditaClientException('File not found', 500);
@@ -428,7 +428,7 @@ class BEditaClient
      * @return array|null Response in array format
      * @throws BEditaClientException
      */
-    public function createMediaFromStream($streamId, string $type, array $body) : ?array
+    public function createMediaFromStream($streamId, string $type, array $body): ?array
     {
         $response = $this->post(sprintf('/%s', $type), json_encode($body));
         if (empty($response)) {
@@ -459,7 +459,7 @@ class BEditaClient
      * @param array $query The query params for thumbs call.
      * @return array|null Response in array format
      */
-    public function thumbs($id = null, $query = []) : ?array
+    public function thumbs($id = null, $query = []): ?array
     {
         if (empty($id) && empty($query['ids'])) {
             throw new BEditaClientException('Invalid empty id|ids for thumbs');
@@ -478,7 +478,7 @@ class BEditaClient
      * @param string $type Object or resource type name
      * @return array|null JSON SCHEMA in array format
      */
-    public function schema(string $type) : ?array
+    public function schema(string $type): ?array
     {
         $h = ['Accept' => 'application/schema+json'];
 
@@ -491,7 +491,7 @@ class BEditaClient
      * @param string $name relation name
      * @return array|null relation data in array format
      */
-    public function relationData(string $name) : ?array
+    public function relationData(string $name): ?array
     {
         $query = [
             'include' => 'left_object_types,right_object_types',
@@ -507,7 +507,7 @@ class BEditaClient
      * @param string $type Object type name
      * @return array|null Response in array format
      */
-    public function restoreObject($id, string $type) : ?array
+    public function restoreObject($id, string $type): ?array
     {
         $body = [
             'data' => [
@@ -527,7 +527,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function patch(string $path, $body, ?array $headers = null) : ?array
+    public function patch(string $path, $body, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('PATCH', $path, null, $headers, $body);
 
@@ -542,7 +542,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function post(string $path, $body, ?array $headers = null) : ?array
+    public function post(string $path, $body, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('POST', $path, null, $headers, $body);
 
@@ -557,7 +557,7 @@ class BEditaClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format.
      */
-    public function delete(string $path, $body = null, ?array $headers = null) : ?array
+    public function delete(string $path, $body = null, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('DELETE', $path, null, $headers, $body);
 
@@ -574,7 +574,7 @@ class BEditaClient
      * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      */
-    protected function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : ResponseInterface
+    protected function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
     {
         try {
             return $this->sendRequest($method, $path, $query, $headers, $body);
@@ -605,7 +605,7 @@ class BEditaClient
      * @return \Psr\Http\Message\ResponseInterface
      * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
-    protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null) : ResponseInterface
+    protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
     {
         $uri = $this->requestUri($path, $query);
         $headers = array_merge($this->defaultHeaders, (array)$headers);
@@ -639,7 +639,7 @@ class BEditaClient
      * @param array|null $query Query string parameters.
      * @return Uri
      */
-    protected function requestUri(string $path, ?array $query = null) : Uri
+    protected function requestUri(string $path, ?array $query = null): Uri
     {
         if (strpos($path, $this->apiBaseUrl) !== 0) {
             if (substr($path, 0, 1) !== '/') {
@@ -670,7 +670,7 @@ class BEditaClient
      * @return void
      * @throws BEditaClientException Throws an exception if server response code is not 20x.
      */
-    public function refreshTokens() : void
+    public function refreshTokens(): void
     {
         if (empty($this->tokens['renew'])) {
             throw new \BadMethodCallException('You must be logged in to renew token');
