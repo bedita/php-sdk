@@ -314,13 +314,19 @@ class BEditaClient
      * @param string $relation Relation name
      * @param string $data Related resources or objects to insert
      * @param array|null $headers Custom request headers
+     * @param bool|null $meta Should post relationships metadata.
      * @return array|null Response in array format
      */
-    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
+    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null, ?bool $meta = false): ?array
     {
         $body = compact('data');
 
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        $res = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        if (!empty($meta)) {
+            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        }
+
+        return $res;
     }
 
     /**
