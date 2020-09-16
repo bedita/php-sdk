@@ -321,12 +321,14 @@ class BEditaClient
     {
         $body = compact('data');
 
-        $res = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
         if (!empty($meta)) {
+            $response = $this->response;
             $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+            $this->response = $response;
         }
 
-        return $res;
+        return $result;
     }
 
     /**

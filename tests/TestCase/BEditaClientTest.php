@@ -301,19 +301,21 @@ class BEditaClientTest extends TestCase
     public function relatedProvider()
     {
         return [
-            'user => roles => admin' => [
-                // new object type
-                'users',
-                // objet data
+            'folder => parent => folder' => [
+                // parent object type
+                'folders',
+                // parent object data
                 [
-                    'username' => base64_encode(random_bytes(10)), // random ~14 chars
+                    'title' => 'parent',
+                ],
+                // child object type
+                'documents',
+                // child object data
+                [
+                    'title' => 'child',
                 ],
                 // the relation
-                'roles',
-                [
-                    'type' => 'roles',
-                    'id' => 1,
-                ],
+                'parents',
                 // expected response
                 [
                     'code' => 200,
@@ -326,10 +328,11 @@ class BEditaClientTest extends TestCase
     /**
      * Test `addRelated` method
      *
-     * @param mixed $type Object type
-     * @param mixed $object Object data
+     * @param mixed $parentType Parent object type
+     * @param mixed $parentData Parent object data
+     * @param mixed $childType Child object type
+     * @param mixed $childData Child object data
      * @param mixed $relation Relationship name
-     * @param mixed $data Resources/objects data to relate
      * @param mixed $expected Expected result
      * @return void
      *
@@ -338,42 +341,58 @@ class BEditaClientTest extends TestCase
      * @covers ::replaceRelated()
      * @dataProvider relatedProvider
      */
-    public function testRelated($type, $object, $relation, $data, $expected)
+    public function testRelated($parentType, $parentData, $childType, $childData, $relation, $expected)
     {
         $this->authenticate();
 
         // create object
-        $response = $this->client->save($type, $object);
+        $parent = $this->client->save($parentType, $parentData);
+        $child = $this->client->save($childType, $childData);
+        $id = $child['data']['id'];
+        $parentId = $parent['data']['id'];
 
         // add related
-        $id = $response['data']['id'];
-        $result = $this->client->addRelated($id, $type, $relation, $data);
+        $data = [
+            'id' => $parentId,
+            'type' => $parentType,
+        ];
+        $result = $this->client->addRelated($id, $childType, $relation, [$data]);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
 
-        $result = $this->client->getRelated($id, $type, $relation);
-        static::assertEquals(1, $result['data'][0]['id']);
+        $result = $this->client->getRelated($id, $childType, $relation);
+        static::assertEquals($parentId, $result['data'][0]['id']);
         static::assertEquals(1, count($result['data']));
 
         // remove related
-        $result = $this->client->removeRelated($id, $type, $relation, $data);
+        $result = $this->client->removeRelated($id, $childType, $relation, $data);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
 
-        $result = $this->client->getRelated($id, $type, $relation);
+        $result = $this->client->getRelated($id, $childType, $relation);
         static::assertEmpty($result['data']);
 
         // replace related
-        $result = $this->client->replaceRelated($id, $type, $relation, $data);
+        $replace = $data + [
+            'meta' => [
+                'relation' => [
+                    'menu' => true,
+                ],
+            ],
+        ];
+        $result = $this->client->replaceRelated($id, $childType, $relation, [$replace], null, true);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
 
-        $result = $this->client->getRelated($id, $type, $relation);
-        static::assertEquals(1, $result['data'][0]['id']);
+        $result = $this->client->getRelated($id, $childType, $relation);
+        var_dump($result['data'][0]);
+        static::assertEquals($parentId, $result['data'][0]['id']);
         static::assertEquals(1, count($result['data']));
+        static::assertEquals(true, $result['data'][0]['meta']['relation']['menu']);
 
         // delete object
-        $response = $this->client->deleteObject($id, $type);
+        $response = $this->client->deleteObject($id, $childType);
+        $response = $this->client->deleteObject($parentId, $parentType);
         // permanently remove object
         $response = $this->client->remove($id);
     }
