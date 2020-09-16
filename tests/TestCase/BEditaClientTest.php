@@ -373,6 +373,7 @@ class BEditaClientTest extends TestCase
         static::assertEmpty($result['data']);
 
         // replace related
+        $parent2 = $this->client->save($parentType, $parentData);
         $replace = $data + [
             'meta' => [
                 'relation' => [
@@ -380,18 +381,25 @@ class BEditaClientTest extends TestCase
                 ],
             ],
         ];
-        $result = $this->client->replaceRelated($id, $childType, $relation, [$replace]);
+        $result = $this->client->replaceRelated($id, $childType, $relation, [
+            [
+                'id' => $parent2['data']['id'],
+                'type' => $parent2['data']['type'],
+            ],
+            $replace,
+        ]);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
 
         $result = $this->client->getRelated($id, $childType, $relation);
         static::assertEquals($parentId, $result['data'][0]['id']);
-        static::assertEquals(1, count($result['data']));
+        static::assertEquals(2, count($result['data']));
         static::assertEquals(true, $result['data'][0]['meta']['relation']['menu']);
 
         // delete object
         $response = $this->client->deleteObject($id, $childType);
         $response = $this->client->deleteObject($parentId, $parentType);
+        $response = $this->client->deleteObject($parent2['data']['id'], $parentType);
         // permanently remove object
         $response = $this->client->remove($id);
     }
