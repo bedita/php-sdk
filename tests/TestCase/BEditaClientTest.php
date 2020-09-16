@@ -373,6 +373,17 @@ class BEditaClientTest extends TestCase
         static::assertEmpty($result['data']);
 
         // replace related
+        $result = $this->client->replaceRelated($id, $childType, $relation, [
+            $data,
+        ]);
+        static::assertEquals($expected['code'], $this->client->getStatusCode());
+        static::assertEquals($expected['message'], $this->client->getStatusMessage());
+
+        $result = $this->client->getRelated($id, $childType, $relation);
+        static::assertEquals($parentId, $result['data'][0]['id']);
+        static::assertEquals(1, count($result['data']));
+
+        // replace related with meta
         $parent2 = $this->client->save($parentType, $parentData);
         $replace = $data + [
             'meta' => [

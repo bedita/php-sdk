@@ -318,11 +318,15 @@ class BEditaClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
+        $items = array_map(function ($item) {
+            return [
+                'id' => $item['id'],
+                'type' => $item['type'],
+            ];
+        }, $data);
+        $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $items]), $headers);
 
-        $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
-
-        $dataWithMeta = array_filter($body, function ($item) {
+        $dataWithMeta = array_filter($data, function ($item) {
             return !empty($item['meta']);
         });
         if (!empty($dataWithMeta)) {
