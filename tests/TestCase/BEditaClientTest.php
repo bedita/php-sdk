@@ -380,12 +380,11 @@ class BEditaClientTest extends TestCase
                 ],
             ],
         ];
-        $result = $this->client->replaceRelated($id, $childType, $relation, [$replace], null, true);
+        $result = $this->client->replaceRelated($id, $childType, $relation, [$replace]);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
 
         $result = $this->client->getRelated($id, $childType, $relation);
-        var_dump($result['data'][0]);
         static::assertEquals($parentId, $result['data'][0]['id']);
         static::assertEquals(1, count($result['data']));
         static::assertEquals(true, $result['data'][0]['meta']['relation']['menu']);
