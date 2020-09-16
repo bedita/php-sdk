@@ -377,7 +377,7 @@ class BEditaClientTest extends TestCase
         $replace = $data + [
             'meta' => [
                 'relation' => [
-                    'menu' => true,
+                    'menu' => false,
                 ],
             ],
         ];
@@ -394,7 +394,7 @@ class BEditaClientTest extends TestCase
         $result = $this->client->getRelated($id, $childType, $relation);
         static::assertEquals($parentId, $result['data'][0]['id']);
         static::assertEquals(2, count($result['data']));
-        static::assertEquals(true, $result['data'][0]['meta']['relation']['menu']);
+        static::assertEquals(false, $result['data'][0]['meta']['relation']['menu']);
 
         // delete object
         $response = $this->client->deleteObject($id, $childType);

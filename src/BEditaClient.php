@@ -325,9 +325,9 @@ class BEditaClient
         $dataWithMeta = array_filter($body, function ($item) {
             return !empty($item['meta']);
         });
-        if (!empty($bodyWithMeta)) {
+        if (!empty($dataWithMeta)) {
             $response = $this->response;
-            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $bodyWithMeta]), $headers);
+            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $dataWithMeta]), $headers);
             $this->response = $response;
         }
 
