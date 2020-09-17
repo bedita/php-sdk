@@ -278,7 +278,7 @@ class BEditaClient
      * @param int|string $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
-     * @param string $data Related resources or objects to add, MUST contain id and type
+     * @param array $data Related resources or objects to add, MUST contain id and type
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
@@ -295,7 +295,7 @@ class BEditaClient
      * @param int|string $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
-     * @param string $data Related resources or objects to remove from relation
+     * @param array $data Related resources or objects to remove from relation
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
@@ -312,26 +312,33 @@ class BEditaClient
      * @param int|string $id Object id
      * @param string $type Object type name
      * @param string $relation Relation name
-     * @param string $data Related resources or objects to insert
+     * @param array $data Related resources or objects to insert
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $items = array_map(function ($item) {
-            return [
-                'id' => $item['id'],
-                'type' => $item['type'],
-            ];
-        }, $data);
+        $items = $data;
+        $itemsWithMeta = null;
+        if (!empty($data[0])) {
+            $items = array_map(function ($item) {
+                return [
+                    'id' => $item['id'],
+                    'type' => $item['type'],
+                ];
+            }, $items);
+            $itemsWithMeta = array_filter($data, function ($item) {
+                return !empty($item['meta']);
+            });
+        } elseif (!empty($data['meta'])) {
+            $itemsWithMeta = $data;
+        }
+
         $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $items]), $headers);
 
-        $dataWithMeta = array_filter($data, function ($item) {
-            return !empty($item['meta']);
-        });
-        if (!empty($dataWithMeta)) {
+        if (!empty($itemsWithMeta)) {
             $response = $this->response;
-            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $dataWithMeta]), $headers);
+            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $itemsWithMeta]), $headers);
             $this->response = $response;
         }
 
