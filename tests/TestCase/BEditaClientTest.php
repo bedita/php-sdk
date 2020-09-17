@@ -37,6 +37,14 @@ class MyBEditaClient extends BEditaClient
     {
         return parent::sendRequest($method, $path, $query, $headers, $body);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function mapItemsAndMeta(array $data): array
+    {
+        return parent::mapItemsAndMeta($data);
+    }
 }
 
 /**
@@ -1315,6 +1323,48 @@ class BEditaClientTest extends TestCase
         static::assertEmpty($response);
     }
 
+
+    /**
+     * Data provider for `mapItemsAndMeta`
+     *
+     * @return array
+     */
+    public function mapItemsAndMetaProvider(): array
+    {
+        $items = [
+            0 => ['id' => 100, 'type' => 'ants'],
+            1 => ['id' => 101, 'type' => 'flyes'],
+            2 => ['id' => 102, 'type' => 'butterflyes'],
+        ];
+        $withMeta = ['id' => 103, 'type' => 'wolves', 'meta' => ['eyes' => 'blue']];
+        return [
+            'items no meta' => [
+                $items,
+                compact('items') + ['withMeta' => []],
+            ],
+            'map items with meta' => [
+                $withMeta,
+                ['items' => $withMeta] + compact('withMeta'),
+            ],
+        ];
+    }
+
+    /**
+     * Test `mapItemsAndMeta`.
+     *
+     * @param array $input
+     * @param array $expected
+     * @return void
+     *
+     * @covers ::mapItemsAndMeta()
+     * @dataProvider mapItemsAndMetaProvider()
+     */
+    public function testMapItemsAndMeta(array $input, array $expected): void
+    {
+        $actual = $this->invokeMethod($this->client, 'mapItemsAndMeta', [$input]);
+        static::assertEquals($expected, $actual);
+    }
+
     /**
      * Create new object for test purposes.
      *
@@ -1326,5 +1376,23 @@ class BEditaClientTest extends TestCase
         $response = $this->client->save($input['type'], $input['data']);
 
         return $response['data']['id'];
+    }
+
+    /**
+     * Call protected/private method of a class.
+     *
+     * @param object &$object    Instantiated object that we will run method on.
+     * @param string $methodName Method name to call
+     * @param array  $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    protected function invokeMethod(&$object, $methodName, array $parameters = array())
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, $parameters);
     }
 }
