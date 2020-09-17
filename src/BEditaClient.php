@@ -345,7 +345,9 @@ class BEditaClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        extract($this->mapItemsAndMeta($data));
+        $map = $this->mapItemsAndMeta($data);
+        $items = $map['items'];
+        $withMeta = $map['withMeta'];
 
         $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $items]), $headers);
 
