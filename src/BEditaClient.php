@@ -307,6 +307,33 @@ class BEditaClient
     }
 
     /**
+     * Create an array of objects with just id and type and filter objects with meta data.
+     *
+     * @param array $data Related resources or objects to insert
+     * @return array Mapped and filtered items
+     */
+    private function mapItemsAndMeta(array $data): array
+    {
+        $items = $data;
+        $withMeta = null;
+        if (!empty($data[0])) {
+            $items = array_map(function ($item) {
+                return [
+                    'id' => $item['id'],
+                    'type' => $item['type'],
+                ];
+            }, $data);
+            $withMeta = array_filter($data, function ($item) {
+                return !empty($item['meta']);
+            });
+        } elseif (!empty($data['meta'])) {
+            $withMeta = $data;
+        }
+
+        return compact('items', 'withMeta');
+    }
+
+    /**
      * Replace a list of related resources or objects: previuosly related are removed and replaced with these.
      *
      * @param int|string $id Object id
@@ -318,28 +345,13 @@ class BEditaClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $items = $data;
-        $itemsWithMeta = null;
-        $keysAsValue = array_flip($data);
-        if ($keysAsValue === array_filter($keysAsValue, 'is_numeric')) {
-            $items = array_map(function ($item) {
-                return [
-                    'id' => $item['id'],
-                    'type' => $item['type'],
-                ];
-            }, $items);
-            $itemsWithMeta = array_filter($items, function ($item) {
-                return !empty($item['meta']);
-            });
-        } elseif (!empty($data['meta'])) {
-            $itemsWithMeta = $data;
-        }
+        extract($this->mapItemsAndMeta($data));
 
         $result = $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $items]), $headers);
 
-        if (!empty($itemsWithMeta)) {
+        if (!empty($withMeta)) {
             $response = $this->response;
-            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $itemsWithMeta]), $headers);
+            $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(['data' => $withMeta]), $headers);
             $this->response = $response;
         }
 
