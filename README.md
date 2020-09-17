@@ -7,7 +7,7 @@ BEdita4 PHP Official PHP SDK
 
 ## Prerequisites
 
-* PHP 7.1 or 7.2
+* PHP 7.2, 7.3 or 7.4
 * [Composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
 
 ## Install
