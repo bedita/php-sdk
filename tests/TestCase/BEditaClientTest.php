@@ -1323,7 +1323,6 @@ class BEditaClientTest extends TestCase
         static::assertEmpty($response);
     }
 
-
     /**
      * Data provider for `mapItemsAndMeta`
      *
@@ -1337,6 +1336,7 @@ class BEditaClientTest extends TestCase
             2 => ['id' => 102, 'type' => 'butterflyes'],
         ];
         $withMeta = ['id' => 103, 'type' => 'wolves', 'meta' => ['eyes' => 'blue']];
+
         return [
             'items no meta' => [
                 $items,
@@ -1387,7 +1387,7 @@ class BEditaClientTest extends TestCase
      *
      * @return mixed Method return.
      */
-    protected function invokeMethod(&$object, $methodName, array $parameters = array())
+    protected function invokeMethod(&$object, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
