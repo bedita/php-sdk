@@ -327,7 +327,7 @@ class BEditaClient
                     'type' => $item['type'],
                 ];
             }, $items);
-            $itemsWithMeta = array_filter($data, function ($item) {
+            $itemsWithMeta = array_filter($items, function ($item) {
                 return !empty($item['meta']);
             });
         } elseif (!empty($data['meta'])) {
