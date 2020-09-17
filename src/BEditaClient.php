@@ -320,7 +320,8 @@ class BEditaClient
     {
         $items = $data;
         $itemsWithMeta = null;
-        if (!empty($data[0])) {
+        $keysAsValue = array_flip($data);
+        if ($keysAsValue === array_filter($keysAsValue, 'is_numeric')) {
             $items = array_map(function ($item) {
                 return [
                     'id' => $item['id'],
