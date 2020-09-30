@@ -318,7 +318,9 @@ class BEditaClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), compact('data'), $headers);
+        $body = compact('data');
+
+        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
     }
 
     /**
