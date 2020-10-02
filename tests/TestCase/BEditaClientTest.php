@@ -1222,6 +1222,16 @@ class BEditaClientTest extends TestCase
                 ],
                 new BEditaClientException('[404] Not Found', 404),
             ],
+            'post users unauthorized' => [
+                [
+                    'method' => 'POST',
+                    'path' => '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                new BEditaClientException('Unauthorized', 401),
+            ],
         ];
     }
 
