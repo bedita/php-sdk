@@ -37,14 +37,6 @@ class MyBEditaClient extends BEditaClient
     {
         return parent::sendRequest($method, $path, $query, $headers, $body);
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function mapItemsAndMeta(array $data): array
-    {
-        return parent::mapItemsAndMeta($data);
-    }
 }
 
 /**
@@ -1230,6 +1222,16 @@ class BEditaClientTest extends TestCase
                 ],
                 new BEditaClientException('[404] Not Found', 404),
             ],
+            'post users unauthorized' => [
+                [
+                    'method' => 'POST',
+                    'path' => '/users',
+                    'query' => null,
+                    'headers' => null,
+                    'body' => null,
+                ],
+                new BEditaClientException('Unauthorized', 401),
+            ],
         ];
     }
 
@@ -1321,48 +1323,6 @@ class BEditaClientTest extends TestCase
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
         static::assertEmpty($response);
-    }
-
-    /**
-     * Data provider for `mapItemsAndMeta`
-     *
-     * @return array
-     */
-    public function mapItemsAndMetaProvider(): array
-    {
-        $items = [
-            0 => ['id' => 100, 'type' => 'ants'],
-            1 => ['id' => 101, 'type' => 'flyes'],
-            2 => ['id' => 102, 'type' => 'butterflyes'],
-        ];
-        $withMeta = ['id' => 103, 'type' => 'wolves', 'meta' => ['eyes' => 'blue']];
-
-        return [
-            'items no meta' => [
-                $items,
-                compact('items') + ['withMeta' => []],
-            ],
-            'map items with meta' => [
-                $withMeta,
-                ['items' => $withMeta] + compact('withMeta'),
-            ],
-        ];
-    }
-
-    /**
-     * Test `mapItemsAndMeta`.
-     *
-     * @param array $input
-     * @param array $expected
-     * @return void
-     *
-     * @covers ::mapItemsAndMeta()
-     * @dataProvider mapItemsAndMetaProvider()
-     */
-    public function testMapItemsAndMeta(array $input, array $expected): void
-    {
-        $actual = $this->invokeMethod($this->client, 'mapItemsAndMeta', [$input]);
-        static::assertEquals($expected, $actual);
     }
 
     /**
