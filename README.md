@@ -2,7 +2,7 @@
 
 BEdita4 PHP Official PHP SDK
 
-[![Build Status](https://travis-ci.org/bedita/php-sdk.svg)](https://travis-ci.org/bedita/php-sdk)
+[![Github Actions](https://github.com/bedita/php-sdk/workflows/php/badge.svg)](https://github.com/bedita/php-sdk/actions?query=workflow%3Aphp)
 [![Code Coverage](https://codecov.io/gh/bedita/php-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/bedita/bedita/branch/master)
 
 ## Prerequisites
