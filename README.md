@@ -100,10 +100,55 @@ You can also use `get` to retrieve a list of resources or objects or a single re
     $response = (array)$client->get('/streams/the-stream-id');
 ```
 
-Other methods doc TBD: getRelated
-### Save data: TBD
+When you need to get relationships related data, you can you `getRelated`.
 
-Other methods doc TBD: saveObject, save, patch, post, addRelated, replaceRelated
+```php
+    // get subfolders for a folder with ID 888
+    $subfolders = $client->getRelated(888, 'folders', 'children', [
+        'filter' => ['type' => 'folders'],
+    ]);
+
+    // get children (all types) inside a folder with unique name 'my-folder-uname'
+    $children = $client->getRelated('my-folder-uname', 'folders', 'children');
+```
+
+### Save data
+
+You can use `save` to save data.
+
+Example:
+```php
+    // save a new document
+    $data = [
+        'title' => 'My new doc',
+        'status' => 'on',
+    ];
+    $response = (array)$client->save('documents', $data);
+
+
+    // save an existing document
+    $data = [
+        'id' => 999,
+        'title' => 'My new doc, changed title',
+    ];
+    $response = (array)$client->save('documents', $data);
+```
+
+You can add related data using `addRelated`.
+
+```php
+    // save a document and add related data, in this example a "see_also" relation between documents and documents is involved
+    $document = $client->save('documents', ['title' => 'My new doc']);
+    $relatedData = [
+        [
+            'id' => 9999, // another doc id
+            'type' => 'documents',
+        ],
+    ];
+    $client->addRelated($document['data']['id'], 'documents', 'see_also', $relatedData);
+```
+
+Other methods doc TBD: saveObject, patch, post, replaceRelated
 
 ### Delete data: TBD
 
