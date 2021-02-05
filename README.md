@@ -94,7 +94,7 @@ You can also use `get($path, $query)` to retrieve a list of resources or objects
     $query = [
         'filter' => ['parent' => 'some-parent-id'],
     ];
-    $response = (array)$client->get('/documents', $query); // param are string $path and array $query
+    $response = (array)$client->get('/documents', $query); // arguments passed are string $path and array $query
 
     // get a stream by id
     $response = (array)$client->get('/streams/the-stream-id'); // argument passed is string $path
@@ -163,7 +163,7 @@ You can trash an object with `delete($path)` or `deleteObject($id, $type)`.
 
 ```php
     // delete annotation by ID 99999
-    $response = $client->delete('/annotations/99999'); // param passed is string $path
+    $response = $client->delete('/annotations/99999'); // argument passed is string $path
 
     // delete annotation by ID 99999 and type documents
     $response = $client->deleteObject(99999, 'annotations'); // arguments passed are string|int $id, string $type
