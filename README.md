@@ -114,7 +114,7 @@ When you need to get relationships related data, you can you `getRelated`.
 
 ### Save data
 
-You can use `save` to save data.
+You can use `save` or `saveObject` (deprecated, use `save` instead) to save data.
 
 Example:
 ```php
@@ -124,7 +124,8 @@ Example:
         'status' => 'on',
     ];
     $response = (array)$client->save('documents', $data);
-
+    // retrocompatibility version with saveObject, deprecated
+    $response = (array)$client->saveObject('documents', $data);
 
     // save an existing document
     $data = [
@@ -132,6 +133,8 @@ Example:
         'title' => 'My new doc, changed title',
     ];
     $response = (array)$client->save('documents', $data);
+    // retrocompatibility version with saveObject, deprecated
+    $response = (array)$client->saveObject('documents', $data);
 ```
 
 You can add related data using `addRelated`.
@@ -148,11 +151,45 @@ You can add related data using `addRelated`.
     $client->addRelated($document['data']['id'], 'documents', 'see_also', $relatedData);
 ```
 
-Other methods doc TBD: saveObject, patch, post, replaceRelated
+Other methods doc TBD: patch, post, replaceRelated
 
-### Delete data: TBD
+### Delete and restore data
 
-Other methods doc TBD: deleteObject delete, remove, removeRelated,
+#### Soft delete
+
+Soft delete puts object into the trashcan.
+You can trash an object with `delete` or `deleteObject`.
+
+```php
+    // delete annotation by ID 99999
+    $response = $client->delete('/annotations/99999');
+
+    // delete annotation by ID 99999 and type documents
+    $response = $client->deleteObject(99999, 'annotations');
+```
+
+#### Restore data
+
+Data in trashcan can be restored with `restoreObject`.
+
+```php
+    // restore annotation 99999
+    $response = $client->restoreObject(99999, 'annotations');
+```
+
+#### Hard delete
+
+Hard delete removes object from trashcan.
+You can remove an object from trashcan with `remove`.
+
+```php
+    // delete annotation by ID 99999
+    $response = $client->deleteObject(99999, 'annotations');
+    // permanently remove annotations 99999
+    $response = $client->remove(99999);
+```
+
+Other methods doc TBD: removeRelated,
 
 ### Other: TBD
 
