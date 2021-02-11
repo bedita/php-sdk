@@ -237,6 +237,85 @@ Relation data can be removed using `removeRelated(int|string $id, string $type, 
     $client->removeRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
 ```
 
-### Other: TBD
+### Upload a file
 
-Other methods doc TBD: upload, createMediaFromStream, thumbs, schema, relationData
+Use `upload(string $filename, string $filepath, ?array $headers = null)` to perform a `POST /streams/upload/:filename` and create a new stream with your file.
+
+```php
+    // upload the image /home/gustavo/sample.jpg
+    $response = $client->upload('sample.jpg', '/home/gustavo/sample.jpg');
+```
+
+Note: if you don't pass `$headers` argument, the function uses `mime_content_type($filepath)`.
+```php
+    // upload the image /home/gustavo/sample.jpg, passing content type
+    $response = $client->upload('sample.jpg', '/home/gustavo/sample.jpg', ['Content-type' => 'image/jpeg']);
+```
+
+### Create media from stream
+
+You create a media object from a stream with `createMediaFromStream(string $streamId, string $type, array $body)`. This basically makes 3 calls:
+
+* `POST /:type` with `$body` as payload, create media object
+* `PATCH /streams/:stream_id/relationships/object` modify stream adding relation to media
+* `GET /:type/:id` get media data
+
+```php
+    // upload an audio file
+    $filepath = '/home/gustavo/sample.mp3';
+    $filename = basename($filepath);
+    $headers = ['Content-type' => 'audio/mpeg'];
+    $response = $client->upload($filename, $filepath, $headers);
+
+    // create media from stream
+    $streamId = Hash::get($response, 'data.id');
+    $body = [
+        'data' => [
+            'type' => 'audios',
+            'attributes' => [
+                'title' => $filename,
+                'status' => 'on',
+            ],
+        ],
+    ];
+    $response = $client->createMediaFromStream($id, $type, $body);
+```
+
+### Thumbnails
+
+Media thumbnails can be retrived using `thumbs(int|null $id, $query = [])`.
+
+Usage:
+
+```php
+    // get thumbnail for media 123 => GET /media/thumbs/123
+    $client->thumbs(123);
+
+    // get thumbnail for media 123 with a preset => GET /media/thumbs/123&preset=glide
+    $client->thumbs(123, ['preset' => 'glide']);
+
+    // get thumbnail for multiple media => GET /media/thumbs?ids=123,124,125
+    $client->thumbs(null, ['ids' => '123,124,125']);
+
+    // get thumbnail for multiple media with a preset => GET /media/thumbs?ids=123,124,125&preset=async
+    $client->thumbs(null, ['ids' => '123,124,125', 'preset' => 'async']);
+
+    // get thumbnail media 123 with specific options (these options could be not available... just set in preset(s)) => GET /media/thumbs/123/options[w]=100&options[h]=80&options[fm]=jpg
+    $client->thumbs(123, ['options' => ['w' => 100, 'h' => 80, 'fm' => 'jpg']]);
+```
+
+### Schema
+
+You can get the JSON SCHEMA of a resource or object with `schema(string $type)`.
+
+```php
+    // get schema of users => GET /model/schema/users
+    $schema = $client->schema('users');
+```
+
+Get info of a relation (data, params) and get left/right object types using `relationData(string $name)`.
+
+```php
+    // get relation data of relation see_also => GET /model/relations/see_also
+    $schema = $client->relationData('see_also');
+```
