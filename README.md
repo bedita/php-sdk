@@ -23,6 +23,7 @@ composer require bedita/php-sdk
 ### Init BEditaClient
 
 Instantiate BEditaClient with api url and api key.
+This will usually be done via factory methods like `ApiclientProvider::getApiClient()` that will read from environment variables and/or configuration files.
 
 ```php
     $apiUrl = 'http://your-api-url';
@@ -33,7 +34,8 @@ Instantiate BEditaClient with api url and api key.
 
 ### Init Logger for custom log
 
-You can use a custom log, calling `initLogger`:
+You can activate a detailed request/response log to file of API calls using `initLogger()` method.
+This will be also usually performed by factory methods like `ApiclientProvider::getApiClient()`.
 
 ```php
    $client->initLogger(['log_file' => '/path/to/file/name.log']);
@@ -61,7 +63,7 @@ Examples:
     $query = [
         'filter' => ['parent' => 'some-parent-id'],
         'include' => 'has_media,part_of',
-        'lang' => 'en_EN',
+        'lang' => 'en',
     ];
     $response = (array)$client->getObjects('documents', $query); // arguments passed are string $type and array $query
 ```
@@ -72,7 +74,7 @@ Examples:
 
     // get document 17823, english version, including related data by relations "has_media" and "part_of"
     $query = [
-        'lang' => 'en_EN',
+        'lang' => 'en',
         'include' => 'has_media,part_of',
     ];
     $response = (array)$client->getObject(17823, 'documents', ['lang' => 'en_EN']); // arguments passed are int|string $id, string $type and array $query
@@ -81,7 +83,8 @@ Examples:
     $response = (array)$client->getObject('website-footer', 'folders'); // arguments passed are int|string $id, string $type
 ```
 
-You can also use `get(string $path, ?array $query = null, ?array $headers = null)` to retrieve a list of resources or objects or a single resource or object
+You can also use `get(string $path, ?array $query = null, ?array $headers = null)` to make an explicit GET api call, specifying the complete request path.
+This is the correct way to call special endpoints like `/home` or `/status` for instance (GET calls that are not used to retrieve objects o resources).
 
 ```php
     // get api status
@@ -115,7 +118,9 @@ When you need to get relationships related data, you can you `getRelated(int|str
 
 ### Save data
 
-You can use `save(string $type, array $data, ?array $headers = null)` or `saveObject(string $type, array $data, ?array $headers = null)` (deprecated, use `save` instead) to save data.
+You can use `save(string $type, array $data, ?array $headers = null)` to save data.
+This is the standard method to use to create or update objects or resources in BEdita 4.
+Please note that the payload is made of object attributes, without the need to specify a `data.attribute` section that you must use when dealing with direct POST o PATCH API calls.
 
 Example:
 ```php
@@ -143,15 +148,21 @@ If you like to use them directly:
 ```php
     // save a new document
     $data = [
-        'title' => 'My new doc',
-        'status' => 'on',
+        'type' => 'documents',
+        'attributes' => [
+            'title' => 'My doc',
+            'status' => 'on',
+        ],
     ];
     $response = (array)$client->post('/documents', $data); // arguments passed are string $path, array $data
 
     // save an existing document
     $data = [
-        'title' => 'My new doc',
-        'status' => 'on',
+        'type' => 'documents',
+        'attributes' => [
+            'title' => 'My doc',
+            'status' => 'on',
+        ],
     ];
     $response = (array)$client->post('/documents/999', $data); // arguments passed are string $path, array $data
 ```
@@ -193,11 +204,11 @@ Soft delete puts object into the trashcan.
 You can trash an object with `delete(string $path, mixed $body = null, ?array $headers = null)` or `deleteObject(int|string $id, string $type)`.
 
 ```php
-    // delete annotation by ID 99999
-    $response = $client->delete('/annotations/99999'); // argument passed is string $path
+    // delete document by ID 99999
+    $response = $client->delete('/documents/99999'); // argument passed is string $path
 
-    // delete annotation by ID 99999 and type documents
-    $response = $client->deleteObject(99999, 'annotations'); // arguments passed are string|int $id, string $type
+    // delete document by ID 99999 and type documents
+    $response = $client->deleteObject(99999, 'documents'); // arguments passed are string|int $id, string $type
 ```
 
 #### Restore data
@@ -205,8 +216,8 @@ You can trash an object with `delete(string $path, mixed $body = null, ?array $h
 Data in trashcan can be restored with `restoreObject(int|string $id, string $type)`.
 
 ```php
-    // restore annotation 99999
-    $response = $client->restoreObject(99999, 'annotations'); // arguments passed are string|int $id, string $type
+    // restore document 99999
+    $response = $client->restoreObject(99999, 'documents'); // arguments passed are string|int $id, string $type
 ```
 
 #### Hard delete
@@ -215,10 +226,10 @@ Hard delete removes object from trashcan.
 You can remove an object from trashcan with `remove(int|string $id)`.
 
 ```php
-    // delete annotation by ID 99999
-    $response = $client->deleteObject(99999, 'annotations'); // arguments passed are string|int $id, string $type
+    // delete document by ID 99999
+    $response = $client->deleteObject(99999, 'documents'); // arguments passed are string|int $id, string $type
 
-    // permanently remove annotations 99999
+    // permanently remove documents 99999
     $response = $client->remove(99999); // argument passed is string|int $id
 ```
 
