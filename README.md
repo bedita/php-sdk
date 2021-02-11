@@ -41,7 +41,7 @@ You can use a custom log, calling `initLogger`:
 
 ### Retrieve data
 
-You can use `getObjects($type, $query)` to retrieve a list of objects by type, `getObject($id, $type, $query)` to get a single object by unique identifier and type.
+You can use `getObjects(string $type = 'objects', ?array $query = null, ?array $headers = null)` to retrieve a list of objects by type, `getObject(int|string $id, string $type = 'objects', ?array $query = null, ?array $headers = null)` to get a single object by unique identifier and type.
 
 Examples:
 
@@ -81,7 +81,7 @@ Examples:
     $response = (array)$client->getObject('website-footer', 'folders'); // arguments passed are int|string $id, string $type
 ```
 
-You can also use `get($path, $query)` to retrieve a list of resources or objects or a single resource or object
+You can also use `get(string $path, ?array $query = null, ?array $headers = null)` to retrieve a list of resources or objects or a single resource or object
 
 ```php
     // get api status
@@ -100,7 +100,7 @@ You can also use `get($path, $query)` to retrieve a list of resources or objects
     $response = (array)$client->get('/streams/the-stream-id'); // argument passed is string $path
 ```
 
-When you need to get relationships related data, you can you `getRelated($id, $type, $relation, $query)`.
+When you need to get relationships related data, you can you `getRelated(int|string $id, string $type, string $relation, ?array $query = null, ?array $headers = null)`.
 
 ```php
     // get subfolders for a folder with ID 888
@@ -115,7 +115,7 @@ When you need to get relationships related data, you can you `getRelated($id, $t
 
 ### Save data
 
-You can use `save($type, $data)` or `saveObject($type, $data)` (deprecated, use `save` instead) to save data.
+You can use `save(string $type, array $data, ?array $headers = null)` or `saveObject(string $type, array $data, ?array $headers = null)` (deprecated, use `save` instead) to save data.
 
 Example:
 ```php
@@ -137,8 +137,26 @@ Example:
     // retrocompatibility version with saveObject, deprecated
     $response = (array)$client->saveObject('documents', $data); // arguments passed are string $type, array $data
 ```
+`save` and `saveObject` use internally `patch(string $path, mixed $body, ?array $headers = null)` (when saving an existing object) or `post(string $path, mixed $body, ?array $headers = null)` (when saving a new object).
 
-You can add related data using `addRelated($id, $type, $relation, $relationData)`.
+If you like to use them directly:
+```php
+    // save a new document
+    $data = [
+        'title' => 'My new doc',
+        'status' => 'on',
+    ];
+    $response = (array)$client->post('/documents', $data); // arguments passed are string $path, array $data
+
+    // save an existing document
+    $data = [
+        'title' => 'My new doc',
+        'status' => 'on',
+    ];
+    $response = (array)$client->post('/documents/999', $data); // arguments passed are string $path, array $data
+```
+
+You can add related data using `addRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
 
 ```php
     // save a document and add related data, in this example a "see_also" relation between documents and documents is involved
@@ -152,14 +170,27 @@ You can add related data using `addRelated($id, $type, $relation, $relationData)
     $client->addRelated($document['data']['id'], 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
 ```
 
-Other methods doc TBD: patch, post, replaceRelated
+`replaceRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)` is handy to replace relation data.
+
+```php
+    // replace related data, in this example a "see_also" relation between document 8888 and document 9999
+    $relatedData = [
+        [
+            'id' => 9999,
+            'type' => 'documents',
+        ],
+    ];
+    $client->replaceRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
+```
+
+Note: `addRelated` uses `post`, `replaceRelated` uses `patch`. Both call `/:type/:id/relationships/:relation`
 
 ### Delete and restore data
 
 #### Soft delete
 
 Soft delete puts object into the trashcan.
-You can trash an object with `delete($path)` or `deleteObject($id, $type)`.
+You can trash an object with `delete(string $path, mixed $body = null, ?array $headers = null)` or `deleteObject(int|string $id, string $type)`.
 
 ```php
     // delete annotation by ID 99999
@@ -171,7 +202,7 @@ You can trash an object with `delete($path)` or `deleteObject($id, $type)`.
 
 #### Restore data
 
-Data in trashcan can be restored with `restoreObject($id, $type)`.
+Data in trashcan can be restored with `restoreObject(int|string $id, string $type)`.
 
 ```php
     // restore annotation 99999
@@ -181,7 +212,7 @@ Data in trashcan can be restored with `restoreObject($id, $type)`.
 #### Hard delete
 
 Hard delete removes object from trashcan.
-You can remove an object from trashcan with `remove($id)`.
+You can remove an object from trashcan with `remove(int|string $id)`.
 
 ```php
     // delete annotation by ID 99999
@@ -191,8 +222,21 @@ You can remove an object from trashcan with `remove($id)`.
     $response = $client->remove(99999); // argument passed is string|int $id
 ```
 
-Other methods doc TBD: removeRelated,
+#### Remove relation
+
+Relation data can be removed using `removeRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
+
+```php
+    // remove related data, in this example a "see_also" relation between document 8888 and document 9999
+    $relatedData = [
+        [
+            'id' => 9999,
+            'type' => 'documents',
+        ],
+    ];
+    $client->removeRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
+```
 
 ### Other: TBD
 
-Other methods doc TBD: upload, createMediaFromStream, thumbs, schema, relationData, restoreObject
+Other methods doc TBD: upload, createMediaFromStream, thumbs, schema, relationData
