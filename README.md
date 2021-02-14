@@ -41,6 +41,33 @@ This will be also usually performed by factory methods like [ApiclientProvider::
    $client->initLogger(['log_file' => '/path/to/file/name.log']);
 ```
 
+### Request Headers
+
+Some headers are handled as default in API calls:
+
+* `Accept` as `application/vnd.api+json` to use JSON-API format
+* `Content-Type` as `application/json` when a request body is set
+* `Authorization` with `Bearer {token}` if a JWT token has been set
+* `X-Api-Key` with the key passed to contructor
+
+Upon every API call you can add new headers or overwrite defaults in the `$header` array argument (see below).
+
+### Authenticate and tokens
+
+To retrieve or set JWT tokens you can:
+
+* use `authenticate(string $username, string $password)` method to perform a classic username/password authentication
+* use `setupTokens()` to set JWT tokens, retrieved from previous `authenticate` or other methods, for subsequent calls
+
+```php
+    $response = (array)$client->authenticate('my-username', 'my-password');
+    if (!empty($response['meta'])) {
+        $client->setupTokens($response['meta']);
+    }
+```
+
+On every subsequent API call JWT token will be used in `Authentication` header and expired token response will also be handled via refresh token automatically by the SDK.
+
 ### Direct API calls and utility methods
 
 In order to use BEdita 4 API you have generally two options:
@@ -265,6 +292,24 @@ Related objects can be removed using `removeRelated(int|string $id, string $type
 
 ### Upload
 
+The easiest way to create a new media object with file upload is to call a POST with file content as body.
+
+Example of image upload:
+
+```php
+    $content = file_get_contents('/path/to/image.png');
+
+    $response = $client->post('/images/upload/image.png',
+        $content,
+        ['Content-type' => 'image/png']
+    );
+```
+
+A new object of type `images` will be created having `image.png` file as related stream resource.
+If you need instead to handle more low level actions via streams read the paragraphs below.
+
+#### Upload streams
+
 Use `upload(string $filename, string $filepath, ?array $headers = null)` to perform a `POST /streams/upload/:filename` and create a new stream with your file.
 
 ```php
@@ -279,7 +324,7 @@ Note: if you don't pass `$headers` argument, the function uses `mime_content_typ
     $response = $client->upload('sample.jpg', '/home/gustavo/sample.jpg', ['Content-type' => 'image/jpeg']);
 ```
 
-### Create media from stream
+#### Create media from stream
 
 You create a media object from a stream with `createMediaFromStream(string $streamId, string $type, array $body)`. This basically makes 3 calls:
 
