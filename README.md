@@ -22,8 +22,8 @@ composer require bedita/php-sdk
 
 ### Init BEditaClient
 
-Instantiate BEditaClient with api url and api key.
-This will usually be done via factory methods like `ApiclientProvider::getApiClient()` that will read from environment variables and/or configuration files.
+Instantiate BEditaClient with API url and API key.
+This will usually be done via factory methods like [ApiclientProvider::getApiClient()](https://github.com/bedita/web-tools/blob/master/src/ApiClientProvider.php) that will read from environment variables and/or configuration files.
 
 ```php
     $apiUrl = 'http://your-api-url';
@@ -35,13 +35,47 @@ This will usually be done via factory methods like `ApiclientProvider::getApiCli
 ### Init Logger for custom log
 
 You can activate a detailed request/response log to file of API calls using `initLogger()` method.
-This will be also usually performed by factory methods like `ApiclientProvider::getApiClient()`.
+This will be also usually performed by factory methods like [ApiclientProvider::getApiClient()](https://github.com/bedita/web-tools/blob/master/src/ApiClientProvider.php).
 
 ```php
    $client->initLogger(['log_file' => '/path/to/file/name.log']);
 ```
 
-### Retrieve data
+### Request Headers
+
+Some headers are handled as default in API calls:
+
+* `Accept` as `application/vnd.api+json` to use JSON-API format
+* `Content-Type` as `application/json` when a request body is set
+* `Authorization` with `Bearer {token}` if a JWT token has been set
+* `X-Api-Key` with the key passed to contructor
+
+Upon every API call you can add new headers or overwrite defaults in the `$header` array argument (see below).
+
+### Authenticate and tokens
+
+To retrieve or set JWT tokens you can:
+
+* use `authenticate(string $username, string $password)` method to perform a classic username/password authentication
+* use `setupTokens()` to set JWT tokens, retrieved from previous `authenticate` or other methods, for subsequent calls
+
+```php
+    $response = (array)$client->authenticate('my-username', 'my-password');
+    if (!empty($response['meta'])) {
+        $client->setupTokens($response['meta']);
+    }
+```
+
+On every subsequent API call JWT token will be used in `Authentication` header and expired token response will also be handled via refresh token automatically by the SDK.
+
+### Direct API calls and utility methods
+
+In order to use BEdita 4 API you have generally two options:
+
+1. use direct API calls invoking POST/GET/PATCH/DELETE HTTP methods using correspondent `get()`/`post()`/`patch()`/`delete()` methods making sure that path, query string, body and headers are correctly populated;
+2. use the utility methods explained below like `save`, `addRelated` and others to simplify settings and obtain a clearer code.
+
+### Read objects and resources
 
 You can use `getObjects(string $type = 'objects', ?array $query = null, ?array $headers = null)` to retrieve a list of objects by type, `getObject(int|string $id, string $type = 'objects', ?array $query = null, ?array $headers = null)` to get a single object by unique identifier and type.
 
@@ -83,14 +117,14 @@ Examples:
     $response = (array)$client->getObject('website-footer', 'folders'); // arguments passed are int|string $id, string $type
 ```
 
-You can also use `get(string $path, ?array $query = null, ?array $headers = null)` to make an explicit GET api call, specifying the complete request path.
+You can also use `get(string $path, ?array $query = null, ?array $headers = null)` to make an explicit GET API call, specifying the complete request path.
 This is the correct way to call special endpoints like `/home` or `/status` for instance (GET calls that are not used to retrieve objects o resources).
 
 ```php
-    // get api status
+    // get API status
     $response = (array)$client->get('/status'); // argument passed is string $path
 
-    // get api home info
+    // get API home info
     $response = (array)$client->get('/home'); // argument passed is string $path
 
     // get a list of documents
@@ -116,13 +150,13 @@ When you need to get relationships related data, you can you `getRelated(int|str
     $children = $client->getRelated('my-folder-uname', 'folders', 'children'); // arguments passed are int|string $id, string $type, string $relation
 ```
 
-### Save data
+### Save objects and resources
 
-You can use `save(string $type, array $data, ?array $headers = null)` to save data.
-This is the standard method to use to create or update objects or resources in BEdita 4.
+You can use `save(string $type, array $data, ?array $headers = null)` method: this is the standard method to use to create or update objects or resources in BEdita 4.
 Please note that the payload is made of object attributes, without the need to specify a `data.attribute` section that you must use when dealing with direct POST o PATCH API calls.
 
 Example:
+
 ```php
     // save a new document
     $data = [
@@ -142,9 +176,11 @@ Example:
     // retrocompatibility version with saveObject, deprecated
     $response = (array)$client->saveObject('documents', $data); // arguments passed are string $type, array $data
 ```
+
 `save` and `saveObject` use internally `patch(string $path, mixed $body, ?array $headers = null)` (when saving an existing object) or `post(string $path, mixed $body, ?array $headers = null)` (when saving a new object).
 
 If you like to use them directly:
+
 ```php
     // save a new document
     $data = [
@@ -166,35 +202,6 @@ If you like to use them directly:
     ];
     $response = (array)$client->post('/documents/999', $data); // arguments passed are string $path, array $data
 ```
-
-You can add related data using `addRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
-
-```php
-    // save a document and add related data, in this example a "see_also" relation between documents and documents is involved
-    $document = $client->save('documents', ['title' => 'My new doc']);
-    $relatedData = [
-        [
-            'id' => 9999, // another doc id
-            'type' => 'documents',
-        ],
-    ];
-    $client->addRelated($document['data']['id'], 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
-```
-
-`replaceRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)` is handy to replace relation data.
-
-```php
-    // replace related data, in this example a "see_also" relation between document 8888 and document 9999
-    $relatedData = [
-        [
-            'id' => 9999,
-            'type' => 'documents',
-        ],
-    ];
-    $client->replaceRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
-```
-
-Note: `addRelated` uses `post`, `replaceRelated` uses `patch`. Both call `/:type/:id/relationships/:relation`
 
 ### Delete and restore data
 
@@ -233,9 +240,44 @@ You can remove an object from trashcan with `remove(int|string $id)`.
     $response = $client->remove(99999); // argument passed is string|int $id
 ```
 
-#### Remove relation
+### Working with relations
 
-Relation data can be removed using `removeRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
+#### Add related objects
+
+You can add related objects using `addRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
+
+```php
+    // save a document and add related objects, in this example a "see_also" relation between documents and documents is involved
+    $document = $client->save('documents', ['title' => 'My new doc']);
+    $relatedData = [
+        [
+            'id' => 9999, // another doc id
+            'type' => 'documents',
+        ],
+    ];
+    $client->addRelated($document['data']['id'], 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
+```
+
+#### Replace related objects
+
+`replaceRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)` is handy to replace related objects.
+
+```php
+    // replace related objects, in this example a "see_also" relation between document 8888 and document 9999
+    $relatedData = [
+        [
+            'id' => 9999,
+            'type' => 'documents',
+        ],
+    ];
+    $client->replaceRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
+```
+
+Note: internally `addRelated` uses `post` and `replaceRelated` uses `patch`. Both will call `/:type/:id/relationships/:relation`
+
+#### Remove related objects
+
+Related objects can be removed using `removeRelated(int|string $id, string $type, string $relation, array $data, ?array $headers = null)`.
 
 ```php
     // remove related data, in this example a "see_also" relation between document 8888 and document 9999
@@ -248,7 +290,25 @@ Relation data can be removed using `removeRelated(int|string $id, string $type, 
     $client->removeRelated(8888, 'documents', 'see_also', $relatedData); // arguments passed are int|string $id, string $type, string $relation, array $relationData
 ```
 
-### Upload a file
+### Upload
+
+The easiest way to create a new media object with file upload is to call a POST with file content as body.
+
+Example of image upload:
+
+```php
+    $content = file_get_contents('/path/to/image.png');
+
+    $response = $client->post('/images/upload/image.png',
+        $content,
+        ['Content-type' => 'image/png']
+    );
+```
+
+A new object of type `images` will be created having `image.png` file as related stream resource.
+If you need instead to handle more low level actions via streams read the paragraphs below.
+
+#### Upload streams
 
 Use `upload(string $filename, string $filepath, ?array $headers = null)` to perform a `POST /streams/upload/:filename` and create a new stream with your file.
 
@@ -258,12 +318,13 @@ Use `upload(string $filename, string $filepath, ?array $headers = null)` to perf
 ```
 
 Note: if you don't pass `$headers` argument, the function uses `mime_content_type($filepath)`.
+
 ```php
     // upload the image /home/gustavo/sample.jpg, passing content type
     $response = $client->upload('sample.jpg', '/home/gustavo/sample.jpg', ['Content-type' => 'image/jpeg']);
 ```
 
-### Create media from stream
+#### Create media from stream
 
 You create a media object from a stream with `createMediaFromStream(string $streamId, string $type, array $body)`. This basically makes 3 calls:
 
