@@ -83,11 +83,12 @@ class BEditaClient
      *  - Auth tokens 'jwt' and 'renew' (optional)
      *
      * @param string $apiUrl API base URL
-     * @param string $apiKey API key
+     * @param string|null $apiKey API key
      * @param array $tokens JWT Autorization tokens as associative array ['jwt' => '###', 'renew' => '###']
+     * @param array $guzzleConfig Additional default configuration for GuzzleHTTP client.
      * @return void
      */
-    public function __construct(string $apiUrl, ?string $apiKey = null, array $tokens = [])
+    public function __construct(string $apiUrl, ?string $apiKey = null, array $tokens = [], array $guzzleConfig = [])
     {
         $this->apiBaseUrl = $apiUrl;
         $this->apiKey = $apiKey;
@@ -96,7 +97,7 @@ class BEditaClient
         $this->setupTokens($tokens);
 
         // setup an asynchronous JSON API client
-        $guzzleClient = Client::createWithConfig([]);
+        $guzzleClient = Client::createWithConfig($guzzleConfig);
         $this->jsonApiClient = new JsonApiClient($guzzleClient);
     }
 
