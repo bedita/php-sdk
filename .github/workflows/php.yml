@@ -158,9 +158,9 @@ jobs:
       - name: 'Install dependencies with Composer'
         run: 'composer install --prefer-dist --no-interaction'
 
-      - name: 'Setup PCOV clobber'
-        run: 'composer require pcov/clobber && vendor/bin/pcov clobber'
-        if: matrix.php-version == '7.4'
+      # - name: 'Setup PCOV clobber'
+      #   run: 'composer require pcov/clobber && vendor/bin/pcov clobber'
+      #   if: matrix.php-version == '7.4'
 
       - name: 'Run PHPUnit with coverage'
         run: 'vendor/bin/phpunit --coverage-clover=clover.xml'
