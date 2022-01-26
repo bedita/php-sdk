@@ -19,7 +19,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.4",
         "php-http/guzzle7-adapter": "^1.0",
         "monolog/monolog": "^2",
         "woohoolabs/yang": "^2.0"
