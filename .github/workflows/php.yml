@@ -161,7 +161,7 @@ jobs:
       - name: 'Setup PCOV clobber'
         run: 'composer require pcov/clobber && vendor/bin/pcov clobber'
         with:
-          php-version: 7.4
+          php-version: '7.4'
 
       - name: 'Run PHPUnit with coverage'
         run: 'vendor/bin/phpunit --coverage-clover=clover.xml'
