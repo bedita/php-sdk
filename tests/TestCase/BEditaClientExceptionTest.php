@@ -32,7 +32,7 @@ class BEditaClientExceptionTest extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -42,7 +42,7 @@ class BEditaClientExceptionTest extends TestCase
     /**
      * Data provider for `testConstruct`
      */
-    public function exceptionsProvider()
+    public function exceptionsProvider(): array
     {
         return [
             '400' => [
@@ -76,11 +76,11 @@ class BEditaClientExceptionTest extends TestCase
      * @covers ::__construct()
      * @dataProvider exceptionsProvider()
      */
-    public function testConstruct($input, $expected)
+    public function testConstruct($input, $expected): void
     {
-        static::expectException(get_class($expected));
-        static::expectExceptionCode($expected->getCode());
-        static::expectExceptionMessage($expected->getMessage());
+        $this->expectException(get_class($expected));
+        $this->expectExceptionCode($expected->getCode());
+        $this->expectExceptionMessage($expected->getMessage());
         throw new BEditaClientException($input[0], $input[1]);
     }
 
@@ -92,9 +92,9 @@ class BEditaClientExceptionTest extends TestCase
      * @covers ::getAttributes()
      * @dataProvider exceptionsProvider()
      */
-    public function testAttributes($input, $expected)
+    public function testAttributes($input, $expected): void
     {
-        static::expectException(get_class($expected));
+        $this->expectException(get_class($expected));
         if (is_array($input[0])) {
             static::assertEquals($expected->getAttributes(), $input[0]);
         }
