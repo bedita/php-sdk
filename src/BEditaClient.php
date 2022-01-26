@@ -12,7 +12,7 @@ namespace BEdita\SDK;
 
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
-use Http\Adapter\Guzzle6\Client;
+use Http\Adapter\Guzzle7\Client;
 use Psr\Http\Message\ResponseInterface;
 use WoohooLabs\Yang\JsonApi\Client\JsonApiClient;
 
