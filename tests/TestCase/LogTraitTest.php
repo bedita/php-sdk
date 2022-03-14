@@ -41,7 +41,7 @@ class LogTraitTest extends TestCase
     /**
      * {@inheritDoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -61,7 +61,7 @@ class LogTraitTest extends TestCase
      *
      * @covers ::initLogger()
      */
-    public function testInitLogger()
+    public function testInitLogger(): void
     {
         $res = $this->client->initLogger(['log_file' => $this->logFile]);
         static::assertTrue($res);
@@ -74,7 +74,7 @@ class LogTraitTest extends TestCase
      *
      * @covers ::initLogger()
      */
-    public function testInitLoggerFailure()
+    public function testInitLoggerFailure(): void
     {
         $res = $this->client->initLogger([]);
         static::assertFalse($res);
@@ -90,7 +90,7 @@ class LogTraitTest extends TestCase
      * @covers ::requestHeadersCleanup()
      * @covers ::requestBodyCleanup()
      */
-    public function testLogRequestResponse()
+    public function testLogRequestResponse(): void
     {
         $res = $this->client->initLogger(['log_file' => $this->logFile]);
         static::assertTrue($res);
@@ -111,7 +111,7 @@ class LogTraitTest extends TestCase
      * @covers ::logRequest()
      * @covers ::logResponse()
      */
-    public function testEmptyLogRequestResponse()
+    public function testEmptyLogRequestResponse(): void
     {
         $this->client->get('/home');
         $lines = file($this->logFile);
@@ -126,7 +126,7 @@ class LogTraitTest extends TestCase
      * @covers ::requestBodyCleanup()
      * @covers ::responseBodyCleanup()
      */
-    public function testBodyCleanup()
+    public function testBodyCleanup(): void
     {
         $res = $this->client->initLogger(['log_file' => $this->logFile]);
         static::assertTrue($res);
@@ -145,7 +145,7 @@ class LogTraitTest extends TestCase
      *
      * @covers ::responseBodyCleanup()
      */
-    public function testEmptyResponseBodyCleanup()
+    public function testEmptyResponseBodyCleanup(): void
     {
         $res = $this->client->initLogger(['log_file' => $this->logFile]);
         static::assertTrue($res);

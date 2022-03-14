@@ -10,6 +10,7 @@
 /provision/*
 /vendor/*
 !/vendor/.gitkeep
+/.phpunit.result.cache
 
 # IDE and editor specific files #
 #################################
