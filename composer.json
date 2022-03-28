@@ -28,6 +28,7 @@
         "cakephp/cakephp-codesniffer": "^3.0",
         "psy/psysh": "@stable",
         "josegonzalez/dotenv": "2.*",
+        "phpstan/phpstan": "^1.5",
         "phpunit/phpunit": "^6.0|^8.0|^9.0"
     },
     "autoload": {

@@ -6,6 +6,7 @@
 /tests/files/api.log
 /coverage/*
 /index.html
+/phpstan.neon
 /phpunit.xml
 /provision/*
 /vendor/*
