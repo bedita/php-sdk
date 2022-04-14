@@ -957,66 +957,6 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testDelete`
-     */
-    public function responseBodyProvider(): array
-    {
-        return [
-            'get users' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                    'fields' => ['data', 'links', 'meta'],
-                ],
-            ],
-            'get unexisting user' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users/9999999',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                new BEditaClientException('[404] Not Found', 404),
-            ],
-        ];
-    }
-
-    /**
-     * Test `getResponseBody`.
-     *
-     * @param mixed $input Input data
-     * @param mixed $expected Expected result
-     * @return void
-     * @covers ::getResponseBody()
-     * @dataProvider responseBodyProvider()
-     */
-    public function testGetResponseBody($input, $expected): void
-    {
-        $response = $this->myclient->authenticate($this->adminUser, $this->adminPassword);
-        $this->myclient->setupTokens($response['meta']);
-        if ($expected instanceof \Exception) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionCode($expected->getCode());
-        }
-        $this->myclient->sendRequestRetry($input['method'], $input['path']);
-        $response = $this->myclient->getResponseBody();
-        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-        static::assertNotEmpty($response);
-        foreach ($expected['fields'] as $key => $val) {
-            static::assertNotEmpty($response[$val]);
-        }
-    }
-
-    /**
      * Data provider for `testSendRequest`
      */
     public function sendRequestProvider(): array
@@ -1219,22 +1159,5 @@ class BEditaClientTest extends TestCase
         $response = $this->client->save($input['type'], $input['data']);
 
         return $response['data']['id'];
-    }
-
-    /**
-     * Call protected/private method of a class.
-     *
-     * @param object &$object    Instantiated object that we will run method on.
-     * @param string $methodName Method name to call
-     * @param array  $parameters Array of parameters to pass into method.
-     * @return mixed Method return.
-     */
-    protected function invokeMethod(&$object, $methodName, array $parameters = [])
-    {
-        $reflection = new \ReflectionClass(get_class($object));
-        $method = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
-
-        return $method->invokeArgs($object, $parameters);
     }
 }
