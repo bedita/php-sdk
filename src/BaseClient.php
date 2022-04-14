@@ -118,7 +118,6 @@ class BaseClient
      * Get default headers in use on every request
      *
      * @return array Default headers
-     * @codeCoverageIgnore
      */
     public function getDefaultHeaders(): array
     {
@@ -129,7 +128,6 @@ class BaseClient
      * Get API base URL used tokens
      *
      * @return string API base URL
-     * @codeCoverageIgnore
      */
     public function getApiBaseUrl(): string
     {
@@ -140,7 +138,6 @@ class BaseClient
      * Get current used tokens
      *
      * @return array Current tokens
-     * @codeCoverageIgnore
      */
     public function getTokens(): array
     {
@@ -151,7 +148,6 @@ class BaseClient
      * Get last HTTP response
      *
      * @return ResponseInterface|null Response PSR interface
-     * @codeCoverageIgnore
      */
     public function getResponse(): ?ResponseInterface
     {
