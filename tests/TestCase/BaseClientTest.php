@@ -420,7 +420,6 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::sendRequestRetry()
      * @dataProvider sendRequestRetryProvider()
      */
@@ -441,7 +440,7 @@ class BaseClientTest extends TestCase
         static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
         static::assertNotEmpty($responseBody);
         if (!empty($expected['fields'])) {
-            foreach ($expected['fields'] as $key => $val) {
+            foreach ($expected['fields'] as $val) {
                 static::assertNotEmpty($responseBody[$val]);
             }
         }

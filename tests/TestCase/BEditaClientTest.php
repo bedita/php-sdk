@@ -489,6 +489,35 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Test `createMedia`
+     *
+     * @return void
+     * @covers ::createMedia()
+     * @covers ::addStreamToMedia()
+     */
+    public function testCreateMediaAndAddToStream(): void
+    {
+        $this->authenticate();
+        $type = 'images';
+        $body = [
+            'data' => [
+                'type' => $type,
+                'attributes' => [],
+            ],
+        ];
+        $id = $this->client->createMedia($type, $body);
+        static::assertIsString($id);
+        static::assertNotEmpty($id);
+
+        $filename = 'test.png';
+        $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
+        $response = $this->client->upload($filename, $filepath);
+        $streamId = $response['data']['id'];
+
+        $this->client->addStreamToMedia($streamId, $id, $type);
+    }
+
+    /**
      * Test `thumbs` method
      *
      * @return void

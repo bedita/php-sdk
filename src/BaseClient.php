@@ -188,11 +188,8 @@ class BaseClient
             return null;
         }
         $responseBody = json_decode((string)$response->getBody(), true);
-        if (!is_array($responseBody)) {
-            return null;
-        }
 
-        return $responseBody;
+        return is_array($responseBody) ? $responseBody : null;
     }
 
     /**

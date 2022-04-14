@@ -245,19 +245,51 @@ class BEditaClient extends BaseClient
      */
     public function createMediaFromStream($streamId, string $type, array $body): ?array
     {
+        $id = $this->createMedia($type, $body);
+        $this->addStreamToMedia($streamId, $id, $type);
+
+        return $this->getObject($id, $type);
+    }
+
+    /**
+     * Create media.
+     *
+     * @param string $type The type
+     * @param array $body The body
+     * @return string
+     * @throws BEditaClientException
+     */
+    public function createMedia(string $type, array $body): string
+    {
         $response = $this->post(sprintf('/%s', $type), json_encode($body));
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from POST ' . sprintf('/%s', $type));
         }
-        $id = $response['data']['id'];
-        $data = compact('id', 'type');
-        $body = compact('data');
+
+        return (string)$response['data']['id'];
+    }
+
+    /**
+     * Add stream to media using patch /streams/%s/relationships/object.
+     *
+     * @param string $streamId The stream ID
+     * @param string $id The object ID
+     * @param string $type The type
+     * @return void
+     * @throws BEditaClientException
+     */
+    public function addStreamToMedia(string $streamId, string $id, string $type): void
+    {
+        $body = [
+            'data' => [
+                'id' => $id,
+                'type' => $type,
+            ],
+        ];
         $response = $this->patch(sprintf('/streams/%s/relationships/object', $streamId), json_encode($body));
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
         }
-
-        return $this->getObject($data['id'], $data['type']);
     }
 
     /**
