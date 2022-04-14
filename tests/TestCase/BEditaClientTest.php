@@ -1,7 +1,7 @@
 <?php
 /**
  * BEdita, API-first content management framework
- * Copyright 2018 ChannelWeb Srl, Chialab Srl
+ * Copyright 2022 Atlas Srl, ChannelWeb Srl, Chialab Srl
  *
  * This file is part of BEdita: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
@@ -89,7 +89,7 @@ class BEditaClientTest extends TestCase
     private $myclient = null;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function setUp(): void
     {
@@ -107,21 +107,19 @@ class BEditaClientTest extends TestCase
      * Test client constructor
      *
      * @return void
-     *
      * @covers ::__construct()
      */
-    public function testConstruct(): void
-    {
-        $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
-        static::assertNotEmpty($client);
-        static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
-    }
+    // public function testConstruct(): void
+    // {
+    //     $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
+    //     static::assertNotEmpty($client);
+    //     static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
+    // }
 
     /**
      * Test `get` method
      *
      * @return void
-     *
      * @covers ::get()
      */
     public function testGet(): void
@@ -132,53 +130,9 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `setupTokens` method
-     *
-     * @return void
-     *
-     * @covers ::setupTokens()
-     */
-    public function testSetupTokens(): void
-    {
-        $token = ['jwt' => '12345', 'renew' => '67890'];
-        $this->client->setupTokens($token);
-
-        $headers = $this->client->getDefaultHeaders();
-        static::assertNotEmpty($headers['Authorization']);
-        static::assertEquals('Bearer 12345', $headers['Authorization']);
-
-        $this->client->setupTokens([]);
-        $headers = $this->client->getDefaultHeaders();
-        static::assertArrayNotHasKey('Authorization', $headers);
-    }
-
-    /**
-     * Test code/message/response body method
-     *
-     * @return void
-     *
-     * @covers ::getStatusCode()
-     * @covers ::getStatusMessage()
-     * @covers ::getResponseBody()
-     */
-    public function testCodeMessageResponse(): void
-    {
-        $response = $this->client->get('/status');
-        static::assertEquals(200, $this->client->getStatusCode());
-        static::assertEquals('OK', $this->client->getStatusMessage());
-        static::assertNotEmpty($this->client->getResponseBody());
-
-        $localClient = new BEditaClient($this->apiBaseUrl, $this->apiKey);
-        static::assertNull($localClient->getStatusCode());
-        static::assertNull($localClient->getStatusMessage());
-        static::assertNull($localClient->getResponseBody());
-    }
-
-    /**
      * Test `authenticate` method
      *
      * @return void
-     *
      * @covers ::authenticate()
      */
     public function testAuthenticate(): void
@@ -197,7 +151,6 @@ class BEditaClientTest extends TestCase
      * Test `authenticate` method failure
      *
      * @return void
-     *
      * @covers ::authenticate()
      */
     public function testAuthenticateFail(): void
@@ -223,7 +176,6 @@ class BEditaClientTest extends TestCase
      * Test `getObjects` method
      *
      * @return void
-     *
      * @covers ::getObjects()
      */
     public function testGetObjects(): void
@@ -241,7 +193,6 @@ class BEditaClientTest extends TestCase
      * Test `getObject` method
      *
      * @return void
-     *
      * @covers ::getObject()
      */
     public function testGetObject(): void
@@ -281,7 +232,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::getRelated()
      * @dataProvider getRelatedProvider
      */
@@ -335,7 +285,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $relation Relationship name
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::addRelated()
      * @covers ::removeRelated()
      * @covers ::replaceRelated()
@@ -392,7 +341,7 @@ class BEditaClientTest extends TestCase
                 ],
             ],
         ];
-        $result = $this->client->replaceRelated($id, $childType, $relation, [
+        $this->client->replaceRelated($id, $childType, $relation, [
             [
                 'id' => $parent2['data']['id'],
                 'type' => $parent2['data']['type'],
@@ -408,18 +357,17 @@ class BEditaClientTest extends TestCase
         static::assertEquals(false, $result['data'][0]['meta']['relation']['menu']);
 
         // delete object
-        $response = $this->client->deleteObject($id, $childType);
-        $response = $this->client->deleteObject($parentId, $parentType);
-        $response = $this->client->deleteObject($parent2['data']['id'], $parentType);
+        $this->client->deleteObject($id, $childType);
+        $this->client->deleteObject($parentId, $parentType);
+        $this->client->deleteObject($parent2['data']['id'], $parentType);
         // permanently remove object
-        $response = $this->client->remove($id);
+        $this->client->remove($id);
     }
 
     /**
      * Test `upload` and `createMediaFromStream` methods
      *
      * @return void
-     *
      * @covers ::upload()
      * @covers ::createMediaFromStream()
      */
@@ -520,7 +468,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for upload
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider uploadProvider
      * @covers ::upload()
      * @covers ::createMediaFromStream()
@@ -574,7 +521,7 @@ class BEditaClientTest extends TestCase
         $exception = new BEditaClientException('Invalid empty id|ids for thumbs');
         $this->expectException(get_class($exception));
         $this->expectExceptionMessage($exception->getMessage());
-        $response = $this->client->thumbs();
+        $this->client->thumbs();
     }
 
     /**
@@ -590,7 +537,7 @@ class BEditaClientTest extends TestCase
         $response = $this->client->upload($filename, $filepath);
 
         $streamId = $response['data']['id'];
-        $response = $this->client->get(sprintf('/streams/%s', $streamId));
+        $this->client->get(sprintf('/streams/%s', $streamId));
 
         $type = 'images';
         $title = 'The test image';
@@ -636,7 +583,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for save
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider saveProvider
      * @covers ::save()
      */
@@ -694,7 +640,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for delete
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider deleteObjectProvider
      * @covers ::deleteObject()
      */
@@ -736,7 +681,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for restore
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider restoreObjectProvider
      * @covers ::restoreObject()
      */
@@ -780,7 +724,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for remove
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider removeProvider
      * @covers ::remove()
      */
@@ -825,7 +768,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for post
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider postProvider
      * @covers ::post()
      */
@@ -877,7 +819,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for patch
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider patchProvider
      * @covers ::patch()
      */
@@ -935,7 +876,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for delete
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider deleteProvider
      * @covers ::delete()
      */
@@ -956,7 +896,6 @@ class BEditaClientTest extends TestCase
      * Test `schema`.
      *
      * @return void
-     *
      * @covers ::schema()
      */
     public function testSchema(): void
@@ -973,7 +912,6 @@ class BEditaClientTest extends TestCase
      * Test `relationData`.
      *
      * @return void
-     *
      * @covers ::relationData()
      */
     public function testRelationData(): void
@@ -1057,7 +995,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::getResponseBody()
      * @dataProvider responseBodyProvider()
      */
@@ -1170,7 +1107,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::sendRequest()
      * @covers ::requestUri()
      * @dataProvider sendRequestProvider()
@@ -1246,7 +1182,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::sendRequestRetry()
      * @dataProvider sendRequestRetryProvider()
      */
@@ -1274,64 +1209,6 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testRefreshTokens`
-     */
-    public function refreshTokensProvider(): array
-    {
-        return [
-            'renew token as not logged' => [
-                ['authenticate' => false],
-                new \BadMethodCallException('You must be logged in to renew token'),
-            ],
-            // FIXME: restore this test when BE 4.7 is released
-            // 'wrong renew token' => [
-            //     ['authenticate' => true, 'token' => 'gustavo' ],
-            //     new BEditaClientException('[401] Wrong number of segments', 401),
-            // ],
-            'renew token as logged' => [
-                ['authenticate' => true],
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `refreshTokens`.
-     *
-     * @param mixed $input Input data
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @covers ::refreshTokens()
-     * @dataProvider refreshTokensProvider()
-     */
-    public function testRefreshTokens($input, $expected): void
-    {
-        if ($expected instanceof \Exception) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionCode($expected->getCode());
-            $this->expectExceptionMessage($expected->getMessage());
-        }
-        if ($input['authenticate'] === true) {
-            $this->authenticate();
-        }
-        if (!empty($input['token'])) {
-            $token = [
-                'jwt' => $input['token'],
-                'renew' => $input['token'],
-            ];
-            $this->client->setupTokens($token);
-        }
-        $response = $this->client->refreshTokens();
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
-        static::assertEmpty($response);
-    }
-
-    /**
      * Create new object for test purposes.
      *
      * @param array $input The input data.
@@ -1350,7 +1227,6 @@ class BEditaClientTest extends TestCase
      * @param object &$object    Instantiated object that we will run method on.
      * @param string $methodName Method name to call
      * @param array  $parameters Array of parameters to pass into method.
-     *
      * @return mixed Method return.
      */
     protected function invokeMethod(&$object, $methodName, array $parameters = [])
