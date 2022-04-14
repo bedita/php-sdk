@@ -16,7 +16,11 @@ use BEdita\SDK\BEditaClient;
 use BEdita\SDK\LogTrait;
 use PHPUnit\Framework\TestCase;
 
-class Dummy {
+/**
+ * Dummy class for test purpose
+ */
+class Dummy
+{
     use LogTrait;
 }
 /**
