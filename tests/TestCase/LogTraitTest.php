@@ -15,8 +15,10 @@ namespace BEdita\SDK\Test\TestCase;
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\LogTrait;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 
+class Dummy {
+    use LogTrait;
+}
 /**
  * \BEdita\SDK\LogTrait Test Case
  *
@@ -58,7 +60,6 @@ class LogTraitTest extends TestCase
      * Test `initLogger`
      *
      * @return void
-     *
      * @covers ::initLogger()
      */
     public function testInitLogger(): void
@@ -71,7 +72,6 @@ class LogTraitTest extends TestCase
      * Test `initLogger` failure
      *
      * @return void
-     *
      * @covers ::initLogger()
      */
     public function testInitLoggerFailure(): void
@@ -84,7 +84,6 @@ class LogTraitTest extends TestCase
      * Test `logRequest` & `logResponse`
      *
      * @return void
-     *
      * @covers ::logRequest()
      * @covers ::logResponse()
      * @covers ::requestHeadersCleanup()
@@ -104,10 +103,42 @@ class LogTraitTest extends TestCase
     }
 
     /**
+     * Test `maskPasswordField`.
+     *
+     * @return void
+     * @covers ::maskPasswordField()
+     */
+    public function testMaskPasswordField(): void
+    {
+        $mask = '***************';
+        $data = [
+            'password' => 'secret',
+            'old_password' => 'secret',
+            'confirm-password' => 'secret',
+        ];
+        $expected = [
+            'password' => $mask,
+            'old_password' => $mask,
+            'confirm-password' => $mask,
+        ];
+        $dummy = new Dummy();
+        $dummy->maskPasswordField($data, 'password');
+        $dummy->maskPasswordField($data, 'old_password');
+        $dummy->maskPasswordField($data, 'confirm-password');
+        static::assertSame($expected, $data);
+
+        $data = ['data' => ['attributes' => $data]];
+        $expected = ['data' => ['attributes' => $expected]];
+        $dummy->maskPasswordField($data, 'password');
+        $dummy->maskPasswordField($data, 'old_password');
+        $dummy->maskPasswordField($data, 'confirm-password');
+        static::assertSame($expected, $data);
+    }
+
+    /**
      * Test empty logRequest` & `logResponse`
      *
      * @return void
-     *
      * @covers ::logRequest()
      * @covers ::logResponse()
      */
@@ -122,16 +153,16 @@ class LogTraitTest extends TestCase
      * Test `requestBodyCleanup` & `responseBodyCleanup()`
      *
      * @return void
-     *
      * @covers ::requestBodyCleanup()
      * @covers ::responseBodyCleanup()
+     * @covers ::maskPasswordField()
      */
     public function testBodyCleanup(): void
     {
         $res = $this->client->initLogger(['log_file' => $this->logFile]);
         static::assertTrue($res);
 
-        $response = $this->client->authenticate(getenv('BEDITA_ADMIN_USR'), getenv('BEDITA_ADMIN_PWD'));
+        $this->client->authenticate(getenv('BEDITA_ADMIN_USR'), getenv('BEDITA_ADMIN_PWD'));
         $lines = file($this->logFile);
         static::assertEquals(2, count($lines));
         static::assertTrue(strpos($lines[0], '***************') !== false);
@@ -142,7 +173,6 @@ class LogTraitTest extends TestCase
      * Test empty `responseBodyCleanup`
      *
      * @return void
-     *
      * @covers ::responseBodyCleanup()
      */
     public function testEmptyResponseBodyCleanup(): void

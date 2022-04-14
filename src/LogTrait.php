@@ -93,16 +93,29 @@ trait LogTrait
         }
 
         $data = json_decode($body, true);
-        foreach (['password', 'old_password', 'confirm-password'] as $p) {
-            if (!empty($data[$p])) {
-                $data[$p] = '***************';
-            }
-            if (!empty($data['data']['attributes'][$p])) {
-                $data['data']['attributes'][$p] = '***************';
-            }
+        foreach (['password', 'old_password', 'confirm-password'] as $field) {
+            $this->maskPasswordField($data, $field);
         }
 
         return json_encode($data);
+    }
+
+    /**
+     * Mask password fields in $data.
+     *
+     * @param array $data The data
+     * @param string $field The field
+     * @return void
+     */
+    public function maskPasswordField(array &$data, string $field): void
+    {
+        $mask = '***************';
+        if (!empty($data[$field])) {
+            $data[$field] = $mask;
+        }
+        if (!empty($data['data']['attributes'][$field])) {
+            $data['data']['attributes'][$field] = $mask;
+        }
     }
 
     /**
