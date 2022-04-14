@@ -4,6 +4,7 @@ BEdita4 PHP Official PHP SDK
 
 [![Github Actions](https://github.com/bedita/php-sdk/workflows/php/badge.svg)](https://github.com/bedita/php-sdk/actions?query=workflow%3Aphp)
 [![Code Coverage](https://codecov.io/gh/bedita/php-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/bedita/bedita/branch/master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bedita/php-sdk/badges/quality-score.png)](https://scrutinizer-ci.com/g/bedita/php-sdk/)
 [![Version](https://img.shields.io/packagist/v/bedita/php-sdk.svg?label=stable)](https://packagist.org/packages/bedita/php-sdk)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/bedita/php-sdk/blob/master/LICENSE.txt)
 
