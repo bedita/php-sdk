@@ -145,6 +145,33 @@ class BaseClientTest extends TestCase
     }
 
     /**
+     * Test getters
+     *
+     * @return void
+     * @covers ::getDefaultHeaders()
+     * @covers ::getApiBaseUrl()
+     * @covers ::getTokens()
+     * @covers ::getResponse()
+     */
+    public function testGetters(): void
+    {
+        $headers = $this->client->getDefaultHeaders();
+        static::assertIsArray($headers);
+        static::assertArrayHasKey('Accept', $headers);
+        static::assertSame('application/vnd.api+json', $headers['Accept']);
+
+        $url = $this->client->getApiBaseUrl();
+        static::assertIsString($url);
+        static::assertSame($this->apiBaseUrl, $url);
+
+        $tokens = $this->client->getTokens();
+        static::assertIsArray($tokens);
+
+        $response = $this->client->getResponse();
+        static::assertNull($response);
+    }
+
+    /**
      * Test code/message/response body method
      *
      * @return void
