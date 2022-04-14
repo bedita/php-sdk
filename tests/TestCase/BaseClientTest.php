@@ -447,6 +447,45 @@ class BaseClientTest extends TestCase
     }
 
     /**
+     * Test `refreshAndRetry`.
+     *
+     * @return void
+     * @covers ::refreshAndRetry()
+     */
+    public function testRefreshAndRetry(): void
+    {
+        $input = [
+            'method' => 'GET',
+            'path' => '/users',
+            'query' => null,
+            'headers' => null,
+            'body' => null,
+        ];
+        $expected = [
+            'code' => 200,
+            'message' => 'OK',
+            'fields' => ['data', 'links', 'meta'],
+        ];
+        $method = $input['method'];
+        $path = $input['path'];
+        $query = $input['query'];
+        $headers = $input['headers'];
+        $body = $input['body'];
+        $response = $this->beditaClient->authenticate($this->adminUser, $this->adminPassword);
+        $this->myclient->setupTokens($response['meta']);
+        $response = $this->invokeMethod($this->myclient, 'refreshAndRetry', [$method, $path, $query, $headers, $body]);
+        $responseBody = json_decode((string)$response->getBody(), true);
+        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
+        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
+        static::assertNotEmpty($responseBody);
+        if (!empty($expected['fields'])) {
+            foreach ($expected['fields'] as $val) {
+                static::assertNotEmpty($responseBody[$val]);
+            }
+        }
+    }
+
+    /**
      * Data provider for `testRefreshTokens`
      */
     public function refreshTokensProvider(): array

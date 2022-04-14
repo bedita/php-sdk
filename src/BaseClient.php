@@ -244,12 +244,26 @@ class BaseClient
                 throw $e;
             }
 
-            // Refresh and retry.
-            $this->refreshTokens();
-            unset($headers['Authorization']);
-
-            return $this->sendRequest($method, $path, $query, $headers, $body);
+            return $this->refreshAndRetry($method, $path, $query, $headers, $body);
         }
+    }
+
+    /**
+     * Refresh and retry.
+     *
+     * @param string $method HTTP Method.
+     * @param string $path Endpoint URL path.
+     * @param array|null $query Query string parameters.
+     * @param string[]|null $headers Custom request headers.
+     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    protected function refreshAndRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
+    {
+        $this->refreshTokens();
+        unset($headers['Authorization']);
+
+        return $this->sendRequest($method, $path, $query, $headers, $body);
     }
 
     /**
