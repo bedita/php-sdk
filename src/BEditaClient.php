@@ -211,6 +211,7 @@ class BEditaClient
      */
     public function authenticate(string $username, string $password): ?array
     {
+        unset($this->defaultHeaders['Authorization']);
         $body = json_encode(compact('username', 'password'));
 
         return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
