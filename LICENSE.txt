@@ -1,7 +1,7 @@
 The MIT License (MIT)
 
 BEdita PHP SDK, API-first content management framework
-Copyright 2022 Atlas Srl, ChannelWeb Srl, Chialab Srl
+Copyright 2018 ChannelWeb Srl, Chialab Srl
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
