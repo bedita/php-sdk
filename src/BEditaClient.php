@@ -212,7 +212,8 @@ class BEditaClient
     public function authenticate(string $username, string $password): ?array
     {
         unset($this->defaultHeaders['Authorization']);
-        $body = json_encode(compact('username', 'password'));
+        $grant = ['grant_type' => 'password'];
+        $body = json_encode(compact('username', 'password') + $grant);
 
         return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
     }
@@ -683,8 +684,9 @@ class BEditaClient
         $headers = [
             'Authorization' => sprintf('Bearer %s', $this->tokens['renew']),
         ];
+        $data = ['grant_type' => 'refresh_token'];
 
-        $this->sendRequest('POST', '/auth', [], $headers);
+        $this->sendRequest('POST', '/auth', [], $headers, $data);
         $body = $this->getResponseBody();
         if (empty($body['meta']['jwt'])) {
             throw new BEditaClientException('Invalid response from server');
