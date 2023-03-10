@@ -1,0 +1,22 @@
+checks:
+  php: true
+filter:
+  paths:
+    - 'src/*'
+  dependency_paths:
+    - 'vendor/*'
+
+build:
+  image: default-jammy
+  environment:
+    node: v18
+  nodes:
+    analysis:
+      environment:
+        php:
+          version: 8.2
+          pecl_extensions:
+            - zip
+      tests:
+        override:
+          - php-scrutinizer-run
