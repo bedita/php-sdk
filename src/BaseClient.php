@@ -212,8 +212,9 @@ class BaseClient
         $headers = [
             'Authorization' => sprintf('Bearer %s', $this->tokens['renew']),
         ];
+        $data = ['grant_type' => 'refresh_token'];
 
-        $this->sendRequest('POST', '/auth', [], $headers);
+        $this->sendRequest('POST', '/auth', [], $headers, json_encode($data));
         $body = $this->getResponseBody();
         if (empty($body['meta']['jwt'])) {
             throw new BEditaClientException('Invalid response from server');
@@ -244,7 +245,11 @@ class BaseClient
                 throw $e;
             }
 
-            return $this->refreshAndRetry($method, $path, $query, $headers, $body);
+            // Refresh and retry.
+            $this->refreshTokens();
+            unset($headers['Authorization']);
+
+            return $this->sendRequest($method, $path, $query, $headers, $body);
         }
     }
 

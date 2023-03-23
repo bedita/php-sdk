@@ -24,8 +24,12 @@ class BEditaClient extends BaseClient
      */
     public function authenticate(string $username, string $password): ?array
     {
-        $this->unsetAuthorization();
-        $body = json_encode(compact('username', 'password'));
+        // remove `Authorization` header containing user data in JWT token when using API KEY
+        if (!empty($this->defaultHeaders['X-Api-Key'])) {
+            unset($this->defaultHeaders['Authorization']);
+        }
+        $grant = ['grant_type' => 'password'];
+        $body = json_encode(compact('username', 'password') + $grant);
 
         return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
     }
