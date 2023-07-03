@@ -3,6 +3,17 @@ name: Release
 on:
   pull_request_target:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
 
 jobs:
   release-job:
@@ -10,3 +21,4 @@ jobs:
     with:
       main_branch: 'master'
       dist_branches: '["master"]'
+      version_bump: ${{ inputs.releaseType }}
