@@ -949,4 +949,285 @@ class BEditaClientTest extends TestCase
 
         return $response['data']['id'];
     }
+
+    /**
+     * Test several methods in sequence
+     *
+     * @return void
+     * @covers ::save()
+     * @covers ::addRelated()
+     * @covers ::getRelated()
+     * @covers ::getObject()
+     * @covers ::removeRelated()
+     * @covers ::deleteObject()
+     * @covers ::remove()
+     * @covers ::restoreObject()
+     * @covers ::upload()
+     * @covers ::createMediaFromStream()
+     * @covers ::createMedia()
+     * @covers ::addStreamToMedia()
+     * @covers ::thumbs()
+     * @covers ::schema()
+     * @covers ::relationData()
+     */
+    public function testMultipurpose(): void
+    {
+        $this->authenticate();
+
+        // create a folder
+        $folder = $this->client->save('folders', ['title' => 'my dummy folder']);
+        static::assertNotEmpty($folder['data']['id']);
+        static::assertSame('my dummy folder', $folder['data']['attributes']['title']);
+        $getObjects = $this->client->getObjects('folders');
+        static::assertGreaterThanOrEqual(1, $getObjects['meta']['pagination']['count']);
+        $allFoldersCount = $getObjects['meta']['pagination']['count'];
+
+        // create 10 documents
+        $documents = [];
+        for ($i = 0; $i < 10; $i++) {
+            $documents[$i] = $this->client->save('documents', ['title' => sprintf('my dummy document %d', $i + 1)]);
+            static::assertNotEmpty($documents[$i]['data']['id']);
+            static::assertSame(sprintf('my dummy document %d', $i + 1), $documents[$i]['data']['attributes']['title']);
+        }
+
+        // get documents: should be more or equal to 10
+        $getObjects = $this->client->getObjects('documents');
+        $allDocumentsCount = $getObjects['meta']['pagination']['count'];
+        static::assertGreaterThanOrEqual(10, $getObjects['meta']['pagination']['count']);
+
+        // add 10 documents as folder children
+        $addRelated = $this->client->addRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documents
+            )
+        );
+        static::assertIsArray($addRelated);
+        static::assertArrayHasKey('links', $addRelated);
+        static::assertArrayHasKey('self', $addRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/relationships/children', $folder['data']['id']),
+            $addRelated['links']['self']
+        );
+
+        // get folder children
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(10, $getRelated['meta']['pagination']['count']);
+        foreach ($getRelated['data'] as $i => $document) {
+            $d = $documents[$i]['data'];
+            static::assertSame($d['id'], $document['id']);
+            static::assertSame($d['type'], $document['type']);
+            // get single document
+            $getObject = $this->client->getObject($document['id'], $document['type']);
+            static::assertSame($d['id'], $getObject['data']['id']);
+            static::assertSame($d['type'], $getObject['data']['type']);
+            static::assertSame($d['attributes']['title'], $getObject['data']['attributes']['title']);
+        }
+        static::assertIsArray($getRelated);
+        static::assertArrayHasKey('links', $getRelated);
+        static::assertArrayHasKey('self', $getRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/children', $folder['data']['id']),
+            $getRelated['links']['self']
+        );
+
+        // remove 5 documents from folder children
+        $removeRelated = $this->client->removeRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                array_slice($documents, 0, 5)
+            )
+        );
+        static::assertIsArray($removeRelated);
+        static::assertArrayHasKey('links', $removeRelated);
+        static::assertArrayHasKey('self', $removeRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/relationships/children', $folder['data']['id']),
+            $removeRelated['links']['self']
+        );
+
+        // get again folder children: should be 5
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(5, $getRelated['meta']['pagination']['count']);
+
+        // replace related folder children with 2 documents
+        $documentsReplace = array_slice($documents, 5, 2);
+        $this->client->replaceRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documentsReplace
+            )
+        );
+
+        // get again folder children: should be 2
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(2, $getRelated['meta']['pagination']['count']);
+
+        // remove all documents from folder children
+        $this->client->removeRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documentsReplace
+            )
+        );
+
+        // get again folder children: should be 0
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(0, $getRelated['meta']['pagination']['count']);
+
+        // move to trash documents
+        foreach ($documents as $document) {
+            $this->client->deleteObject($document['data']['id'], $document['data']['type']);
+        }
+
+        // count documents: should be 10 less than before
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($allDocumentsCount - 10, $getObjects['meta']['pagination']['count']);
+
+        // restore documents
+        foreach ($documents as $document) {
+            $this->client->restoreObject($document['data']['id'], $document['data']['type']);
+        }
+        // count documents: should be the same number as before
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($allDocumentsCount, $getObjects['meta']['pagination']['count']);
+
+        // move to documents to trash again
+        foreach ($documents as $document) {
+            $this->client->deleteObject($document['data']['id'], $document['data']['type']);
+        }
+        // permanently remove documents
+        foreach ($documents as $document) {
+            $this->client->remove($document['data']['id']);
+        }
+        // move folder to trash
+        $this->client->deleteObject($folder['data']['id'], $folder['data']['type']);
+        // permanently remove folder
+        $this->client->remove($folder['data']['id']);
+
+        // get documents: should be 10 less than before
+        $expectedDocumentsCount = $allDocumentsCount - 10;
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($expectedDocumentsCount, $getObjects['meta']['pagination']['count']);
+
+        // get folders: should be 1 less than before
+        $expectedFoldersCount = $allFoldersCount - 1;
+        $getObjects = $this->client->getObjects('folders');
+        static::assertSame($expectedFoldersCount, $getObjects['meta']['pagination']['count']);
+
+        // upload a file
+        $upload = $this->client->upload('test.png', sprintf('%s/tests/files/test.png', getcwd()));
+        static::assertNotEmpty($upload['data']['id']);
+        static::assertSame('test.png', $upload['data']['attributes']['file_name']);
+        $streamId = $upload['data']['id'];
+        $stream = $this->client->get(sprintf('/streams/%s', $streamId));
+        static::assertSame($streamId, $stream['data']['id']);
+        static::assertSame('test.png', $stream['data']['attributes']['file_name']);
+
+        // create media from stream
+        $type = 'images';
+        $title = 'A new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $cmfs = $this->client->createMediaFromStream($streamId, $type, $body);
+        static::assertSame($type, $cmfs['data']['type']);
+        static::assertSame($title, $cmfs['data']['attributes']['title']);
+        static::assertArrayHasKey('included', $cmfs);
+        static::assertArrayHasKey(0, $cmfs['included']);
+        static::assertArrayHasKey('id', $cmfs['included'][0]);
+        static::assertArrayHasKey('attributes', $cmfs['included'][0]);
+        static::assertSame($streamId, $cmfs['included'][0]['id']);
+        static::assertSame('streams', $cmfs['included'][0]['type']);
+
+        // create media
+        $type = 'images';
+        $title = 'Another new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $mediaId = $this->client->createMedia($type, $body);
+        static::assertIsString($mediaId);
+        static::assertNotEmpty($mediaId);
+        $media = $this->client->getObject($mediaId, $type);
+        static::assertSame($mediaId, $media['data']['id']);
+        static::assertSame($type, $media['data']['type']);
+        static::assertSame($title, $media['data']['attributes']['title']);
+
+        // add stream to media
+        $this->client->addStreamToMedia($streamId, $mediaId, $type);
+        $media = $this->client->get(sprintf('/%s/%s', $type, $mediaId));
+        static::assertSame($streamId, $media['included'][0]['id']);
+
+        // get thumbs
+        $thumbs = $this->client->thumbs($mediaId, ['preset' => 'default']);
+        static::assertNotEmpty($thumbs['meta']['thumbnails']);
+        static::assertStringContainsString('/_files/thumbs/', $thumbs['meta']['thumbnails'][0]['url']);
+
+        // get schema
+        $schema = $this->client->schema('documents');
+        static::assertNotEmpty($schema);
+        static::assertStringContainsString('/model/schema/documents', $schema['$id']);
+
+        // create relation
+        $schema = [
+            'properties' => [
+                'isNumber' => [
+                    'type' => 'boolean',
+                    'description' => 'custom params is boolean',
+                ],
+            ],
+        ];
+        $data = [
+            'type' => 'relations',
+            'attributes' => [
+                'name' => 'my_owner_of',
+                'label' => 'Owner of',
+                'inverse_name' => 'my_belongs_to',
+                'inverse_label' => 'Belongs to',
+                'description' => null,
+                'params' => $schema,
+            ],
+        ];
+        $this->client->post('model/relations', json_encode(compact('data')));
+
+        // get relation data
+        $relationData = $this->client->relationData('my_owner_of');
+        static::assertNotEmpty($relationData);
+        static::assertArrayHasKey('data', $relationData);
+        static::assertArrayHasKey('attributes', $relationData['data']);
+        static::assertArrayHasKey('params', $relationData['data']['attributes']);
+    }
 }
