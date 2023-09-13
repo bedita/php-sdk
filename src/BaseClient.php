@@ -1,7 +1,8 @@
 <?php
+declare(strict_types=1);
 /**
  * BEdita, API-first content management framework
- * Copyright 2022 Atlas Srl, ChannelWeb Srl, Chialab Srl
+ * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
  *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
@@ -349,5 +350,65 @@ class BaseClient
             return;
         }
         unset($this->defaultHeaders['Authorization']);
+    }
+
+    /**
+     * Send a GET request a list of resources or objects or a single resource or object
+     *
+     * @param string $path Endpoint URL path to invoke
+     * @param array|null $query Optional query string
+     * @param array|null $headers Headers
+     * @return array|null Response in array format
+     */
+    public function get(string $path, ?array $query = null, ?array $headers = null): ?array
+    {
+        $this->sendRequestRetry('GET', $path, $query, $headers);
+
+        return $this->getResponseBody();
+    }
+
+    /**
+     * Send a PATCH request to modify a single resource or object
+     *
+     * @param string $path Endpoint URL path to invoke
+     * @param mixed $body Request body
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     */
+    public function patch(string $path, $body, ?array $headers = null): ?array
+    {
+        $this->sendRequestRetry('PATCH', $path, null, $headers, $body);
+
+        return $this->getResponseBody();
+    }
+
+    /**
+     * Send a POST request for creating resources or objects or other operations like /auth
+     *
+     * @param string $path Endpoint URL path to invoke
+     * @param mixed $body Request body
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     */
+    public function post(string $path, $body, ?array $headers = null): ?array
+    {
+        $this->sendRequestRetry('POST', $path, null, $headers, $body);
+
+        return $this->getResponseBody();
+    }
+
+    /**
+     * Send a DELETE request
+     *
+     * @param string $path Endpoint URL path to invoke.
+     * @param mixed $body Request body
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format.
+     */
+    public function delete(string $path, $body = null, ?array $headers = null): ?array
+    {
+        $this->sendRequestRetry('DELETE', $path, null, $headers, $body);
+
+        return $this->getResponseBody();
     }
 }

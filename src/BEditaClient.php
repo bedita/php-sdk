@@ -1,7 +1,8 @@
 <?php
+declare(strict_types=1);
 /**
  * BEdita, API-first content management framework
- * Copyright 2022 Atlas Srl, ChannelWeb Srl, Chialab Srl
+ * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
  *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
@@ -11,7 +12,7 @@
 namespace BEdita\SDK;
 
 /**
- * BEdita4 API Client class
+ * BEdita API Client class
  */
 class BEditaClient extends BaseClient
 {
@@ -25,28 +26,14 @@ class BEditaClient extends BaseClient
     public function authenticate(string $username, string $password): ?array
     {
         // remove `Authorization` header containing user data in JWT token when using API KEY
-        if (!empty($this->defaultHeaders['X-Api-Key'])) {
-            unset($this->defaultHeaders['Authorization']);
+        $headers = $this->getDefaultHeaders();
+        if (!empty($headers['X-Api-Key'])) {
+            unset($headers['Authorization']);
         }
         $grant = ['grant_type' => 'password'];
         $body = json_encode(compact('username', 'password') + $grant);
 
         return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
-    }
-
-    /**
-     * Send a GET request a list of resources or objects or a single resource or object
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param array|null $query Optional query string
-     * @param array|null $headers Headers
-     * @return array|null Response in array format
-     */
-    public function get(string $path, ?array $query = null, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('GET', $path, $query, $headers);
-
-        return $this->getResponseBody();
     }
 
     /**
@@ -217,7 +204,7 @@ class BEditaClient extends BaseClient
      * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
-     * @throws BEditaClientException
+     * @throws BEdita\SDK\BEditaClientException
      */
     public function upload(string $filename, string $filepath, ?array $headers = null): ?array
     {
@@ -245,7 +232,7 @@ class BEditaClient extends BaseClient
      * @param string $type The type
      * @param array $body The body data
      * @return array|null Response in array format
-     * @throws BEditaClientException
+     * @throws BEdita\SDK\BEditaClientException
      */
     public function createMediaFromStream($streamId, string $type, array $body): ?array
     {
@@ -261,7 +248,7 @@ class BEditaClient extends BaseClient
      * @param string $type The type
      * @param array $body The body
      * @return string
-     * @throws BEditaClientException
+     * @throws BEdita\SDK\BEditaClientException
      */
     public function createMedia(string $type, array $body): string
     {
@@ -280,7 +267,7 @@ class BEditaClient extends BaseClient
      * @param string $id The object ID
      * @param string $type The type
      * @return void
-     * @throws BEditaClientException
+     * @throws BEdita\SDK\BEditaClientException
      */
     public function addStreamToMedia(string $streamId, string $id, string $type): void
     {
@@ -368,50 +355,5 @@ class BEditaClient extends BaseClient
         ];
 
         return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body));
-    }
-
-    /**
-     * Send a PATCH request to modify a single resource or object
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format
-     */
-    public function patch(string $path, $body, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('PATCH', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
-    }
-
-    /**
-     * Send a POST request for creating resources or objects or other operations like /auth
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format
-     */
-    public function post(string $path, $body, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('POST', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
-    }
-
-    /**
-     * Send a DELETE request
-     *
-     * @param string $path Endpoint URL path to invoke.
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format.
-     */
-    public function delete(string $path, $body = null, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('DELETE', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
     }
 }
