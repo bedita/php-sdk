@@ -1151,7 +1151,7 @@ class BEditaClientTest extends TestCase
                     'fields' => ['data', 'links', 'meta'],
                 ],
             ],
-            'absolute path with 404' => [
+            'absolute path with 500' => [
                 [
                     'method' => 'GET',
                     'path' => 'http://example.com/zzzzz',
