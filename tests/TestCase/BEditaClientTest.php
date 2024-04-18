@@ -1151,7 +1151,7 @@ class BEditaClientTest extends TestCase
                     'fields' => ['data', 'links', 'meta'],
                 ],
             ],
-            'absolute path with 500' => [
+            'absolute path with 404' => [
                 [
                     'method' => 'GET',
                     'path' => 'http://example.com/zzzzz',
@@ -1159,7 +1159,7 @@ class BEditaClientTest extends TestCase
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('Internal Server Error', 500),
+                new BEditaClientException('Not Found', 404),
             ],
         ];
     }
