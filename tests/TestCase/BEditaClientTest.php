@@ -1159,7 +1159,7 @@ class BEditaClientTest extends TestCase
                     'headers' => null,
                     'body' => null,
                 ],
-                new BEditaClientException('Not Found', 404),
+                new BEditaClientException('Internal Server Error', 500),
             ],
         ];
     }
