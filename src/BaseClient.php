@@ -199,10 +199,8 @@ class BaseClient
      * On success `$this->tokens` data will be updated with new access and renew tokens.
      *
      * @throws \BadMethodCallException Throws an exception if client has no renew token available.
-     * @throws \Cake\Network\Exception\ServiceUnavailableException Throws an exception if server response doesn't
-     *      include the expected data.
      * @return void
-     * @throws BEditaClientException Throws an exception if server response code is not 20x.
+     * @throws \BEdita\SDK\BEditaClientException Throws an exception if server response code is not 20x.
      */
     public function refreshTokens(): void
     {
@@ -281,7 +279,7 @@ class BaseClient
      * @param string[]|null $headers Custom request headers.
      * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
-     * @throws BEditaClientException Throws an exception if server response code is not 20x.
+     * @throws \BEdita\SDK\BEditaClientException Throws an exception if server response code is not 20x.
      */
     protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
     {

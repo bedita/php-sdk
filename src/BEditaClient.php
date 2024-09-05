@@ -204,7 +204,7 @@ class BEditaClient extends BaseClient
      * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
-     * @throws BEdita\SDK\BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function upload(string $filename, string $filepath, ?array $headers = null): ?array
     {
@@ -232,7 +232,7 @@ class BEditaClient extends BaseClient
      * @param string $type The type
      * @param array $body The body data
      * @return array|null Response in array format
-     * @throws BEdita\SDK\BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function createMediaFromStream($streamId, string $type, array $body): ?array
     {
@@ -248,7 +248,7 @@ class BEditaClient extends BaseClient
      * @param string $type The type
      * @param array $body The body
      * @return string
-     * @throws BEdita\SDK\BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function createMedia(string $type, array $body): string
     {
@@ -267,7 +267,7 @@ class BEditaClient extends BaseClient
      * @param string $id The object ID
      * @param string $type The type
      * @return void
-     * @throws BEdita\SDK\BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function addStreamToMedia(string $streamId, string $id, string $type): void
     {
