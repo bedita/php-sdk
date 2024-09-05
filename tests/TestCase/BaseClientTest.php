@@ -340,7 +340,7 @@ class BaseClientTest extends TestCase
             'absolute path with 404' => [
                 [
                     'method' => 'GET',
-                    'path' => 'http://example.com/zzzzz',
+                    'path' => getenv('BEDITA_API') . '/zzzzz',
                     'query' => null,
                     'headers' => null,
                     'body' => null,
