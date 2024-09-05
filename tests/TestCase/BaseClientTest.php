@@ -459,6 +459,49 @@ class BaseClientTest extends TestCase
     }
 
     /**
+     * Test `sendRequestRetry` on exception.
+     *
+     * @return void
+     * @covers ::sendRequestRetry()
+     */
+    public function testSendRequestRetryOnException(): void
+    {
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionCode(401);
+        $this->expectExceptionMessage('Expired token');
+        // mock sendRequest to throw exception
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BaseClient {
+            public function refreshTokens(): void
+            {
+                // do nothing
+            }
+
+            public function sendRequest(
+                string $method,
+                string $path,
+                ?array $query = null,
+                ?array $headers = null,
+                $body = null
+            ): ResponseInterface {
+                throw new class extends BEditaClientException {
+                    public function __construct()
+                    {
+                        parent::__construct('Expired token', 401);
+                    }
+
+                    public function getAttributes(): array
+                    {
+                        return ['code' => 'be_token_expired'];
+                    }
+                };
+            }
+        };
+        $response = $this->beditaClient->authenticate($this->adminUser, $this->adminPassword);
+        $client->setupTokens($response['meta']);
+        $client->get('/users');
+    }
+
+    /**
      * Test `refreshAndRetry`.
      *
      * @return void
