@@ -507,11 +507,10 @@ class BaseClientTest extends TestCase
                 ['authenticate' => false],
                 new \BadMethodCallException('You must be logged in to renew token'),
             ],
-            // FIXME: restore this test when BE 4.7 is released
-            // 'wrong renew token' => [
-            //     ['authenticate' => true, 'token' => 'gustavo' ],
-            //     new BEditaClientException('[401] Wrong number of segments', 401),
-            // ],
+            'wrong renew token' => [
+                ['authenticate' => true, 'token' => 'gustavo' ],
+                new BEditaClientException('[401] Wrong number of segments', 401),
+            ],
             'renew token as logged' => [
                 ['authenticate' => true],
                 [
