@@ -561,6 +561,29 @@ class BaseClientTest extends TestCase
     }
 
     /**
+     * Test `refreshToken` on Invalid response from server.
+     *
+     * @return void
+     * @covers ::refreshToken()
+     */
+    public function testRefreshTokenInvalidResponseFromServer(): void
+    {
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionCode(503);
+        $this->expectExceptionMessage('Invalid response from server');
+        // mock getResponseBody to return empty array
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BaseClient {
+            public function getResponseBody(): array
+            {
+                return [];
+            }
+        };
+        $response = $this->beditaClient->authenticate($this->adminUser, $this->adminPassword);
+        $client->setupTokens($response['meta']);
+        $client->refreshTokens();
+    }
+
+    /**
      * Test `unsetAuthorization`
      *
      * @return void
