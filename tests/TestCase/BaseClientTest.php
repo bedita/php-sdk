@@ -509,7 +509,8 @@ class BaseClientTest extends TestCase
             ],
             'wrong renew token' => [
                 ['authenticate' => true, 'token' => 'gustavo' ],
-                new BEditaClientException('[401] Wrong number of segments', 401),
+                // can be [401] Wrong number of segments (BE4) / [401] Login request not successful (BE5)
+                '401',
             ],
             'renew token as logged' => [
                 ['authenticate' => true],
@@ -533,6 +534,10 @@ class BaseClientTest extends TestCase
      */
     public function testRefreshTokens($input, $expected): void
     {
+        if (is_string($expected)) {
+            $this->expectException(BEditaClientException::class);
+            $this->expectExceptionCode($expected);
+        }
         if ($expected instanceof \Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
