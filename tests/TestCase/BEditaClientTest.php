@@ -533,7 +533,6 @@ class BEditaClientTest extends TestCase
         $client->createMedia($type, $body);
     }
 
-
     /**
      * Test `addStreamToMedia` when patch return empty array
      *
