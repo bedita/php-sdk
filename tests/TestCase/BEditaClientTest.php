@@ -542,7 +542,7 @@ class BEditaClientTest extends TestCase
     public function testAddStreamToMediaException(): void
     {
         // mock patch to return empty array
-        $client = new class($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
             public function patch(string $path, $body, ?array $headers = null): ?array
             {
                 return [];
