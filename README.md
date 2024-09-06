@@ -1,6 +1,6 @@
 # BEdita API PHP SDK
 
-BEdita4 PHP Official PHP SDK
+BEdita PHP Official PHP SDK
 
 [![Github Actions PHP](https://github.com/bedita/php-sdk/workflows/php/badge.svg)](https://github.com/bedita/php-sdk/actions?query=workflow%3Aphp)
 [![Code Coverage](https://codecov.io/gh/bedita/php-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/bedita/bedita/branch/master)

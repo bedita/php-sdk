@@ -1,6 +1,6 @@
 {
     "name": "bedita/php-sdk",
-    "description": "BEdita4 PHP SDK",
+    "description": "BEdita PHP SDK",
     "homepage": "https://www.bedita.com",
     "type": "library",
     "license": "MIT",

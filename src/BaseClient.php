@@ -29,14 +29,14 @@ class BaseClient
     private $response = null;
 
     /**
-     * BEdita4 API base URL
+     * BEdita API base URL
      *
      * @var string
      */
     private $apiBaseUrl = null;
 
     /**
-     * BEdita4 API KEY
+     * BEdita API KEY
      *
      * @var string
      */
@@ -68,7 +68,7 @@ class BaseClient
     private $tokens = [];
 
     /**
-     * JSON API BEdita4 client
+     * JSON API BEdita client
      *
      * @var \WoohooLabs\Yang\JsonApi\Client\JsonApiClient
      */
