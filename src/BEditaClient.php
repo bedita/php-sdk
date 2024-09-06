@@ -30,10 +30,8 @@ class BEditaClient extends BaseClient
         if (!empty($headers['X-Api-Key'])) {
             unset($headers['Authorization']);
         }
-        $grant = ['grant_type' => 'password'];
-        $body = json_encode(compact('username', 'password') + $grant);
 
-        return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
+        return $this->post('/auth', json_encode(compact('username', 'password') + ['grant_type' => 'password']), ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -90,9 +88,7 @@ class BEditaClient extends BaseClient
      */
     public function addRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -107,9 +103,7 @@ class BEditaClient extends BaseClient
      */
     public function removeRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -124,9 +118,7 @@ class BEditaClient extends BaseClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -271,13 +263,15 @@ class BEditaClient extends BaseClient
      */
     public function addStreamToMedia(string $streamId, string $id, string $type): void
     {
-        $body = [
-            'data' => [
-                'id' => $id,
-                'type' => $type,
-            ],
-        ];
-        $response = $this->patch(sprintf('/streams/%s/relationships/object', $streamId), json_encode($body));
+        $response = $this->patch(
+            sprintf('/streams/%s/relationships/object', $streamId),
+            json_encode([
+                'data' => [
+                    'id' => $id,
+                    'type' => $type,
+                ],
+            ])
+        );
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
         }
@@ -302,10 +296,7 @@ class BEditaClient extends BaseClient
         if (empty($id) && empty($query['ids'])) {
             throw new BEditaClientException('Invalid empty id|ids for thumbs');
         }
-        $endpoint = '/media/thumbs';
-        if (!empty($id)) {
-            $endpoint .= sprintf('/%d', $id);
-        }
+        $endpoint = empty($id) ? '/media/thumbs' : sprintf('/media/thumbs/%d', $id);
 
         return $this->get($endpoint, $query);
     }
@@ -318,9 +309,11 @@ class BEditaClient extends BaseClient
      */
     public function schema(string $type): ?array
     {
-        $h = ['Accept' => 'application/schema+json'];
-
-        return $this->get(sprintf('/model/schema/%s', $type), null, $h);
+        return $this->get(
+            sprintf('/model/schema/%s', $type),
+            null,
+            ['Accept' => 'application/schema+json']
+        );
     }
 
     /**
@@ -331,11 +324,10 @@ class BEditaClient extends BaseClient
      */
     public function relationData(string $name): ?array
     {
-        $query = [
-            'include' => 'left_object_types,right_object_types',
-        ];
-
-        return $this->get(sprintf('/model/relations/%s', $name), $query);
+        return $this->get(
+            sprintf('/model/relations/%s', $name),
+            ['include' => 'left_object_types,right_object_types']
+        );
     }
 
     /**
@@ -347,13 +339,14 @@ class BEditaClient extends BaseClient
      */
     public function restoreObject($id, string $type): ?array
     {
-        $body = [
-            'data' => [
-                'id' => $id,
-                'type' => $type,
-            ],
-        ];
-
-        return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body));
+        return $this->patch(
+            sprintf('/%s/%s', 'trash', $id),
+            json_encode([
+                'data' => [
+                    'id' => $id,
+                    'type' => $type,
+                ],
+            ])
+        );
     }
 }
