@@ -110,12 +110,12 @@ class BEditaClientTest extends TestCase
      * @return void
      * @covers ::__construct()
      */
-    // public function testConstruct(): void
-    // {
-    //     $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
-    //     static::assertNotEmpty($client);
-    //     static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
-    // }
+    public function testConstruct(): void
+    {
+        $client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
+        static::assertNotEmpty($client);
+        static::assertEquals($client->getApiBaseUrl(), $this->apiBaseUrl);
+    }
 
     /**
      * Test `authenticate` method
