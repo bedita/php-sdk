@@ -506,6 +506,56 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Test `createMedia` when post return empty array
+     *
+     * @return void
+     * @covers ::createMedia()
+     */
+    public function testCreateMediaException(): void
+    {
+        // mock post to return empty array
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function post(string $path, $body, ?array $headers = null): ?array
+            {
+                return [];
+            }
+        };
+        $type = 'images';
+        $body = [
+            'data' => [
+                'type' => $type,
+                'attributes' => [],
+            ],
+        ];
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionMessage('Invalid response from POST /images');
+        $this->expectExceptionCode(503);
+        $client->createMedia($type, $body);
+    }
+
+
+    /**
+     * Test `addStreamToMedia` when patch return empty array
+     *
+     * @return void
+     * @covers ::addStreamToMedia()
+     */
+    public function testAddStreamToMediaException(): void
+    {
+        // mock patch to return empty array
+        $client = new class($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function patch(string $path, $body, ?array $headers = null): ?array
+            {
+                return [];
+            }
+        };
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionMessage('Invalid response from PATCH /streams/999/relationships/object');
+        $this->expectExceptionCode(503);
+        $client->addStreamToMedia('123456789', '999', 'images');
+    }
+
+    /**
      * Test `thumbs` method
      *
      * @return void
