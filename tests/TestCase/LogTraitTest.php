@@ -23,6 +23,7 @@ class Dummy
 {
     use LogTrait;
 }
+
 /**
  * \BEdita\SDK\LogTrait Test Case
  *
