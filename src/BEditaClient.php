@@ -29,6 +29,7 @@ class BEditaClient extends BaseClient
         $headers = $this->getDefaultHeaders();
         if (!empty($headers['X-Api-Key'])) {
             unset($headers['Authorization']);
+            $this->setDefaultHeaders($headers);
         }
 
         return $this->post('/auth', json_encode(compact('username', 'password') + ['grant_type' => 'password']), ['Content-Type' => 'application/json']);
