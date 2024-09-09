@@ -1,7 +1,8 @@
 <?php
+declare(strict_types=1);
 /**
  * BEdita, API-first content management framework
- * Copyright 2018 ChannelWeb Srl, Chialab Srl
+ * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
  *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
@@ -10,198 +11,11 @@
 
 namespace BEdita\SDK;
 
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Uri;
-use Http\Adapter\Guzzle7\Client;
-use Psr\Http\Message\ResponseInterface;
-use WoohooLabs\Yang\JsonApi\Client\JsonApiClient;
-
 /**
- * BEdita4 API Client class
+ * BEdita API Client class
  */
-class BEditaClient
+class BEditaClient extends BaseClient
 {
-    use LogTrait;
-
-    /**
-     * Last response.
-     *
-     * @var \Psr\Http\Message\ResponseInterface
-     */
-    private $response = null;
-
-    /**
-     * BEdita4 API base URL
-     *
-     * @var string
-     */
-    private $apiBaseUrl = null;
-
-    /**
-     * BEdita4 API KEY
-     *
-     * @var string
-     */
-    private $apiKey = null;
-
-    /**
-     * Default headers in request
-     *
-     * @var array
-     */
-    private $defaultHeaders = [
-        'Accept' => 'application/vnd.api+json',
-    ];
-
-    /**
-     * Default headers in request
-     *
-     * @var array
-     */
-    private $defaultContentTypeHeader = [
-        'Content-Type' => 'application/json',
-    ];
-
-    /**
-     * JWT Auth tokens
-     *
-     * @var array
-     */
-    private $tokens = [];
-
-    /**
-     * JSON API BEdita4 client
-     *
-     * @var \WoohooLabs\Yang\JsonApi\Client\JsonApiClient
-     */
-    private $jsonApiClient = null;
-
-    /**
-     * Setup main client options:
-     *  - API base URL
-     *  - API KEY
-     *  - Auth tokens 'jwt' and 'renew' (optional)
-     *
-     * @param string $apiUrl API base URL
-     * @param string|null $apiKey API key
-     * @param array $tokens JWT Autorization tokens as associative array ['jwt' => '###', 'renew' => '###']
-     * @param array $guzzleConfig Additional default configuration for GuzzleHTTP client.
-     * @return void
-     */
-    public function __construct(string $apiUrl, ?string $apiKey = null, array $tokens = [], array $guzzleConfig = [])
-    {
-        $this->apiBaseUrl = $apiUrl;
-        $this->apiKey = $apiKey;
-
-        $this->defaultHeaders['X-Api-Key'] = $this->apiKey;
-        $this->setupTokens($tokens);
-
-        // setup an asynchronous JSON API client
-        $guzzleClient = Client::createWithConfig($guzzleConfig);
-        $this->jsonApiClient = new JsonApiClient($guzzleClient);
-    }
-
-    /**
-     * Setup JWT access and refresh tokens.
-     *
-     * @param array $tokens JWT tokens as associative array ['jwt' => '###', 'renew' => '###']
-     * @return void
-     */
-    public function setupTokens(array $tokens): void
-    {
-        $this->tokens = $tokens;
-        if (!empty($tokens['jwt'])) {
-            $this->defaultHeaders['Authorization'] = sprintf('Bearer %s', $tokens['jwt']);
-        } else {
-            unset($this->defaultHeaders['Authorization']);
-        }
-    }
-
-    /**
-     * Get default headers in use on every request
-     *
-     * @return array Default headers
-     * @codeCoverageIgnore
-     */
-    public function getDefaultHeaders(): array
-    {
-        return $this->defaultHeaders;
-    }
-
-    /**
-     * Get API base URL used tokens
-     *
-     * @return string API base URL
-     * @codeCoverageIgnore
-     */
-    public function getApiBaseUrl(): string
-    {
-        return $this->apiBaseUrl;
-    }
-
-    /**
-     * Get current used tokens
-     *
-     * @return array Current tokens
-     * @codeCoverageIgnore
-     */
-    public function getTokens(): array
-    {
-        return $this->tokens;
-    }
-
-    /**
-     * Get last HTTP response
-     *
-     * @return ResponseInterface|null Response PSR interface
-     * @codeCoverageIgnore
-     */
-    public function getResponse(): ?ResponseInterface
-    {
-        return $this->response;
-    }
-
-    /**
-     * Get HTTP response status code
-     * Return null if no response is available
-     *
-     * @return int|null Status code.
-     */
-    public function getStatusCode(): ?int
-    {
-        return $this->response ? $this->response->getStatusCode() : null;
-    }
-
-    /**
-     * Get HTTP response status message
-     * Return null if no response is available
-     *
-     * @return string|null Message related to status code.
-     */
-    public function getStatusMessage(): ?string
-    {
-        return $this->response ? $this->response->getReasonPhrase() : null;
-    }
-
-    /**
-     * Get response body serialized into a PHP array
-     *
-     * @return array|null Response body as PHP array.
-     */
-    public function getResponseBody(): ?array
-    {
-        $response = $this->getResponse();
-        if (empty($response)) {
-            return null;
-        }
-        $responseBody = json_decode((string)$response->getBody(), true);
-        if (!is_array($responseBody)) {
-            return null;
-        }
-
-        return $responseBody;
-    }
-
     /**
      * Classic authentication via POST /auth using username and password
      *
@@ -212,28 +26,12 @@ class BEditaClient
     public function authenticate(string $username, string $password): ?array
     {
         // remove `Authorization` header containing user data in JWT token when using API KEY
-        if (!empty($this->defaultHeaders['X-Api-Key'])) {
-            unset($this->defaultHeaders['Authorization']);
+        $headers = $this->getDefaultHeaders();
+        if (!empty($headers['X-Api-Key'])) {
+            unset($headers['Authorization']);
         }
-        $grant = ['grant_type' => 'password'];
-        $body = json_encode(compact('username', 'password') + $grant);
 
-        return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
-    }
-
-    /**
-     * Send a GET request a list of resources or objects or a single resource or object
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param array|null $query Optional query string
-     * @param array|null $headers Headers
-     * @return array|null Response in array format
-     */
-    public function get(string $path, ?array $query = null, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('GET', $path, $query, $headers);
-
-        return $this->getResponseBody();
+        return $this->post('/auth', json_encode(compact('username', 'password') + ['grant_type' => 'password']), ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -290,9 +88,7 @@ class BEditaClient
      */
     public function addRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -307,9 +103,7 @@ class BEditaClient
      */
     public function removeRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -324,9 +118,7 @@ class BEditaClient
      */
     public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
-        $body = compact('data');
-
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode($body), $headers);
+        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
 
     /**
@@ -404,7 +196,7 @@ class BEditaClient
      * @param string $filepath File full path: could be on a local filesystem or a remote reachable URL
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
-     * @throws BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function upload(string $filename, string $filepath, ?array $headers = null): ?array
     {
@@ -432,23 +224,57 @@ class BEditaClient
      * @param string $type The type
      * @param array $body The body data
      * @return array|null Response in array format
-     * @throws BEditaClientException
+     * @throws \BEdita\SDK\BEditaClientException
      */
     public function createMediaFromStream($streamId, string $type, array $body): ?array
+    {
+        $id = $this->createMedia($type, $body);
+        $this->addStreamToMedia($streamId, $id, $type);
+
+        return $this->getObject($id, $type);
+    }
+
+    /**
+     * Create media.
+     *
+     * @param string $type The type
+     * @param array $body The body
+     * @return string
+     * @throws \BEdita\SDK\BEditaClientException
+     */
+    public function createMedia(string $type, array $body): string
     {
         $response = $this->post(sprintf('/%s', $type), json_encode($body));
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from POST ' . sprintf('/%s', $type));
         }
-        $id = $response['data']['id'];
-        $data = compact('id', 'type');
-        $body = compact('data');
-        $response = $this->patch(sprintf('/streams/%s/relationships/object', $streamId), json_encode($body));
+
+        return (string)$response['data']['id'];
+    }
+
+    /**
+     * Add stream to media using patch /streams/%s/relationships/object.
+     *
+     * @param string $streamId The stream ID
+     * @param string $id The object ID
+     * @param string $type The type
+     * @return void
+     * @throws \BEdita\SDK\BEditaClientException
+     */
+    public function addStreamToMedia(string $streamId, string $id, string $type): void
+    {
+        $response = $this->patch(
+            sprintf('/streams/%s/relationships/object', $streamId),
+            json_encode([
+                'data' => [
+                    'id' => $id,
+                    'type' => $type,
+                ],
+            ])
+        );
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
         }
-
-        return $this->getObject($data['id'], $data['type']);
     }
 
     /**
@@ -470,10 +296,7 @@ class BEditaClient
         if (empty($id) && empty($query['ids'])) {
             throw new BEditaClientException('Invalid empty id|ids for thumbs');
         }
-        $endpoint = '/media/thumbs';
-        if (!empty($id)) {
-            $endpoint .= sprintf('/%d', $id);
-        }
+        $endpoint = empty($id) ? '/media/thumbs' : sprintf('/media/thumbs/%d', $id);
 
         return $this->get($endpoint, $query);
     }
@@ -486,9 +309,11 @@ class BEditaClient
      */
     public function schema(string $type): ?array
     {
-        $h = ['Accept' => 'application/schema+json'];
-
-        return $this->get(sprintf('/model/schema/%s', $type), null, $h);
+        return $this->get(
+            sprintf('/model/schema/%s', $type),
+            null,
+            ['Accept' => 'application/schema+json']
+        );
     }
 
     /**
@@ -499,11 +324,10 @@ class BEditaClient
      */
     public function relationData(string $name): ?array
     {
-        $query = [
-            'include' => 'left_object_types,right_object_types',
-        ];
-
-        return $this->get(sprintf('/model/relations/%s', $name), $query);
+        return $this->get(
+            sprintf('/model/relations/%s', $name),
+            ['include' => 'left_object_types,right_object_types']
+        );
     }
 
     /**
@@ -515,184 +339,14 @@ class BEditaClient
      */
     public function restoreObject($id, string $type): ?array
     {
-        $body = [
-            'data' => [
-                'id' => $id,
-                'type' => $type,
-            ],
-        ];
-
-        return $this->patch(sprintf('/%s/%s', 'trash', $id), json_encode($body));
-    }
-
-    /**
-     * Send a PATCH request to modify a single resource or object
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format
-     */
-    public function patch(string $path, $body, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('PATCH', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
-    }
-
-    /**
-     * Send a POST request for creating resources or objects or other operations like /auth
-     *
-     * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format
-     */
-    public function post(string $path, $body, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('POST', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
-    }
-
-    /**
-     * Send a DELETE request
-     *
-     * @param string $path Endpoint URL path to invoke.
-     * @param mixed $body Request body
-     * @param array|null $headers Custom request headers
-     * @return array|null Response in array format.
-     */
-    public function delete(string $path, $body = null, ?array $headers = null): ?array
-    {
-        $this->sendRequestRetry('DELETE', $path, null, $headers, $body);
-
-        return $this->getResponseBody();
-    }
-
-    /**
-     * Send a generic JSON API request with a basic retry policy on expired token exception.
-     *
-     * @param string $method HTTP Method.
-     * @param string $path Endpoint URL path.
-     * @param array|null $query Query string parameters.
-     * @param string[]|null $headers Custom request headers.
-     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    protected function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
-    {
-        try {
-            return $this->sendRequest($method, $path, $query, $headers, $body);
-        } catch (BEditaClientException $e) {
-            // Handle error.
-            $attributes = $e->getAttributes();
-            if ($e->getCode() !== 401 || empty($attributes['code']) || $attributes['code'] !== 'be_token_expired') {
-                // Not an expired token's fault.
-                throw $e;
-            }
-
-            // Refresh and retry.
-            $this->refreshTokens();
-            unset($headers['Authorization']);
-
-            return $this->sendRequest($method, $path, $query, $headers, $body);
-        }
-    }
-
-    /**
-     * Send a generic JSON API request and retrieve response $this->response
-     *
-     * @param string $method HTTP Method.
-     * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
-     * @param array|null $query Query string parameters.
-     * @param string[]|null $headers Custom request headers.
-     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
-     * @return \Psr\Http\Message\ResponseInterface
-     * @throws BEditaClientException Throws an exception if server response code is not 20x.
-     */
-    protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
-    {
-        $uri = $this->requestUri($path, $query);
-        $headers = array_merge($this->defaultHeaders, (array)$headers);
-
-        // set default `Content-Type` if not set and $body not empty
-        if (!empty($body)) {
-            $headers = array_merge($this->defaultContentTypeHeader, $headers);
-        }
-
-        // Send the request synchronously to retrieve the response.
-        // Request and response log performed only if configured via `initLogger()`
-        $request = new Request($method, $uri, $headers, $body);
-        $this->logRequest($request);
-        $this->response = $this->jsonApiClient->sendRequest($request);
-        $this->logResponse($this->response);
-        if ($this->getStatusCode() >= 400) {
-            // Something bad just happened.
-            $response = $this->getResponseBody();
-            // Message will be 'error` array, if absent use status massage
-            $message = empty($response['error']) ? $this->getStatusMessage() : $response['error'];
-            throw new BEditaClientException($message, $this->getStatusCode());
-        }
-
-        return $this->response;
-    }
-
-    /**
-     * Create request URI from path.
-     * If path is absolute, i.e. it starts with 'http://' or 'https://', path is unchanged.
-     * Otherwise `$this->apiBaseUrl` is prefixed, prepending a `/` if necessary.
-     *
-     * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
-     * @param array|null $query Query string parameters.
-     * @return Uri
-     */
-    protected function requestUri(string $path, ?array $query = null): Uri
-    {
-        if (strpos($path, 'https://') !== 0 && strpos($path, 'http://') !== 0) {
-            if (substr($path, 0, 1) !== '/') {
-                $path = '/' . $path;
-            }
-            $path = $this->apiBaseUrl . $path;
-        }
-        $uri = new Uri($path);
-
-        // if path contains query strings, remove them from path and add them to query filter
-        parse_str($uri->getQuery(), $uriQuery);
-        if ($query) {
-            $query = array_merge((array)$uriQuery, (array)$query);
-            $uri = $uri->withQuery(http_build_query($query));
-        }
-
-        return $uri;
-    }
-
-    /**
-     * Refresh JWT access token.
-     *
-     * On success `$this->tokens` data will be updated with new access and renew tokens.
-     *
-     * @return void
-     * @throws \BadMethodCallException Throws an exception if client has no renew token available.
-     * @throws BEditaClientException Throws an exception if server response code is not 20x.
-     */
-    public function refreshTokens(): void
-    {
-        if (empty($this->tokens['renew'])) {
-            throw new \BadMethodCallException('You must be logged in to renew token');
-        }
-
-        $headers = [
-            'Authorization' => sprintf('Bearer %s', $this->tokens['renew']),
-        ];
-        $data = ['grant_type' => 'refresh_token'];
-
-        $this->sendRequest('POST', '/auth', [], $headers, json_encode($data));
-        $body = $this->getResponseBody();
-        if (empty($body['meta']['jwt'])) {
-            throw new BEditaClientException('Invalid response from server');
-        }
-
-        $this->setupTokens($body['meta']);
+        return $this->patch(
+            sprintf('/%s/%s', 'trash', $id),
+            json_encode([
+                'data' => [
+                    'id' => $id,
+                    'type' => $type,
+                ],
+            ])
+        );
     }
 }

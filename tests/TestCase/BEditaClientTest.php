@@ -1,7 +1,8 @@
 <?php
+declare(strict_types=1);
 /**
  * BEdita, API-first content management framework
- * Copyright 2018 ChannelWeb Srl, Chialab Srl
+ * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
  *
  * This file is part of BEdita: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
@@ -89,7 +90,7 @@ class BEditaClientTest extends TestCase
     private $myclient = null;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function setUp(): void
     {
@@ -107,7 +108,6 @@ class BEditaClientTest extends TestCase
      * Test client constructor
      *
      * @return void
-     *
      * @covers ::__construct()
      */
     public function testConstruct(): void
@@ -118,67 +118,9 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `get` method
-     *
-     * @return void
-     *
-     * @covers ::get()
-     */
-    public function testGet(): void
-    {
-        $response = $this->client->get('/status');
-        static::assertNotEmpty($response);
-        static::assertNotEmpty($response['meta']['status']);
-    }
-
-    /**
-     * Test `setupTokens` method
-     *
-     * @return void
-     *
-     * @covers ::setupTokens()
-     */
-    public function testSetupTokens(): void
-    {
-        $token = ['jwt' => '12345', 'renew' => '67890'];
-        $this->client->setupTokens($token);
-
-        $headers = $this->client->getDefaultHeaders();
-        static::assertNotEmpty($headers['Authorization']);
-        static::assertEquals('Bearer 12345', $headers['Authorization']);
-
-        $this->client->setupTokens([]);
-        $headers = $this->client->getDefaultHeaders();
-        static::assertArrayNotHasKey('Authorization', $headers);
-    }
-
-    /**
-     * Test code/message/response body method
-     *
-     * @return void
-     *
-     * @covers ::getStatusCode()
-     * @covers ::getStatusMessage()
-     * @covers ::getResponseBody()
-     */
-    public function testCodeMessageResponse(): void
-    {
-        $response = $this->client->get('/status');
-        static::assertEquals(200, $this->client->getStatusCode());
-        static::assertEquals('OK', $this->client->getStatusMessage());
-        static::assertNotEmpty($this->client->getResponseBody());
-
-        $localClient = new BEditaClient($this->apiBaseUrl, $this->apiKey);
-        static::assertNull($localClient->getStatusCode());
-        static::assertNull($localClient->getStatusMessage());
-        static::assertNull($localClient->getResponseBody());
-    }
-
-    /**
      * Test `authenticate` method
      *
      * @return void
-     *
      * @covers ::authenticate()
      */
     public function testAuthenticate(): void
@@ -197,7 +139,6 @@ class BEditaClientTest extends TestCase
      * Test `authenticate` method failure
      *
      * @return void
-     *
      * @covers ::authenticate()
      */
     public function testAuthenticateFail(): void
@@ -223,7 +164,6 @@ class BEditaClientTest extends TestCase
      * Test `getObjects` method
      *
      * @return void
-     *
      * @covers ::getObjects()
      */
     public function testGetObjects(): void
@@ -241,7 +181,6 @@ class BEditaClientTest extends TestCase
      * Test `getObject` method
      *
      * @return void
-     *
      * @covers ::getObject()
      */
     public function testGetObject(): void
@@ -281,7 +220,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::getRelated()
      * @dataProvider getRelatedProvider
      */
@@ -335,7 +273,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $relation Relationship name
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::addRelated()
      * @covers ::removeRelated()
      * @covers ::replaceRelated()
@@ -392,7 +329,7 @@ class BEditaClientTest extends TestCase
                 ],
             ],
         ];
-        $result = $this->client->replaceRelated($id, $childType, $relation, [
+        $this->client->replaceRelated($id, $childType, $relation, [
             [
                 'id' => $parent2['data']['id'],
                 'type' => $parent2['data']['type'],
@@ -408,18 +345,17 @@ class BEditaClientTest extends TestCase
         static::assertEquals(false, $result['data'][0]['meta']['relation']['menu']);
 
         // delete object
-        $response = $this->client->deleteObject($id, $childType);
-        $response = $this->client->deleteObject($parentId, $parentType);
-        $response = $this->client->deleteObject($parent2['data']['id'], $parentType);
+        $this->client->deleteObject($id, $childType);
+        $this->client->deleteObject($parentId, $parentType);
+        $this->client->deleteObject($parent2['data']['id'], $parentType);
         // permanently remove object
-        $response = $this->client->remove($id);
+        $this->client->remove($id);
     }
 
     /**
      * Test `upload` and `createMediaFromStream` methods
      *
      * @return void
-     *
      * @covers ::upload()
      * @covers ::createMediaFromStream()
      */
@@ -520,7 +456,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for upload
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider uploadProvider
      * @covers ::upload()
      * @covers ::createMediaFromStream()
@@ -539,6 +474,84 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('data', $result);
         static::assertArrayHasKey('attributes', $result['data']);
         static::assertEquals($input['filename'], $result['data']['attributes']['file_name']);
+    }
+
+    /**
+     * Test `createMedia`
+     *
+     * @return void
+     * @covers ::createMedia()
+     * @covers ::addStreamToMedia()
+     */
+    public function testCreateMediaAndAddToStream(): void
+    {
+        $this->authenticate();
+        $type = 'images';
+        $body = [
+            'data' => [
+                'type' => $type,
+                'attributes' => [],
+            ],
+        ];
+        $id = $this->client->createMedia($type, $body);
+        static::assertIsString($id);
+        static::assertNotEmpty($id);
+
+        $filename = 'test.png';
+        $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
+        $response = $this->client->upload($filename, $filepath);
+        $streamId = $response['data']['id'];
+
+        $this->client->addStreamToMedia($streamId, $id, $type);
+    }
+
+    /**
+     * Test `createMedia` when post return empty array
+     *
+     * @return void
+     * @covers ::createMedia()
+     */
+    public function testCreateMediaException(): void
+    {
+        // mock post to return empty array
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function post(string $path, $body, ?array $headers = null): ?array
+            {
+                return [];
+            }
+        };
+        $type = 'images';
+        $body = [
+            'data' => [
+                'type' => $type,
+                'attributes' => [],
+            ],
+        ];
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionMessage('Invalid response from POST /images');
+        $this->expectExceptionCode(503);
+        $client->createMedia($type, $body);
+    }
+
+    /**
+     * Test `addStreamToMedia` when patch return empty array
+     *
+     * @return void
+     * @covers ::addStreamToMedia()
+     */
+    public function testAddStreamToMediaException(): void
+    {
+        // mock patch to return empty array
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function patch(string $path, $body, ?array $headers = null): ?array
+            {
+                return [];
+            }
+        };
+        $this->expectException(BEditaClientException::class);
+        $this->expectExceptionMessage('Invalid response from PATCH /streams/999/relationships/object');
+        $this->expectExceptionCode(503);
+        $client->addStreamToMedia('123456789', '999', 'images');
     }
 
     /**
@@ -574,23 +587,23 @@ class BEditaClientTest extends TestCase
         $exception = new BEditaClientException('Invalid empty id|ids for thumbs');
         $this->expectException(get_class($exception));
         $this->expectExceptionMessage($exception->getMessage());
-        $response = $this->client->thumbs();
+        $this->client->thumbs();
     }
 
     /**
      * Create image and media stream for test.
      * Return id
      *
-     * @return int The image ID.
+     * @return string The image ID.
      */
-    private function _image(): int
+    private function _image(): string
     {
         $filename = 'test.png';
         $filepath = sprintf('%s/tests/files/%s', getcwd(), $filename);
         $response = $this->client->upload($filename, $filepath);
 
         $streamId = $response['data']['id'];
-        $response = $this->client->get(sprintf('/streams/%s', $streamId));
+        $this->client->get(sprintf('/streams/%s', $streamId));
 
         $type = 'images';
         $title = 'The test image';
@@ -636,7 +649,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for save
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider saveProvider
      * @covers ::save()
      */
@@ -694,7 +706,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for delete
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider deleteObjectProvider
      * @covers ::deleteObject()
      */
@@ -736,7 +747,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for restore
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider restoreObjectProvider
      * @covers ::restoreObject()
      */
@@ -780,7 +790,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for remove
      * @param mixed $expected Expected result
      * @return void
-     *
      * @dataProvider removeProvider
      * @covers ::remove()
      */
@@ -797,166 +806,9 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testPost`
-     */
-    public function postProvider(): array
-    {
-        return [
-            'document' => [
-                [
-                    // new document data
-                    'type' => 'documents',
-                    'data' => [
-                        'title' => 'this is a test document',
-                    ],
-                ],
-                // expected response from post
-                [
-                    'code' => 201,
-                    'message' => 'Created',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `post`.
-     *
-     * @param mixed $input Input data for post
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @dataProvider postProvider
-     * @covers ::post()
-     */
-    public function testPost($input, $expected): void
-    {
-        $this->authenticate();
-
-        $type = $input['type'];
-        $body = [
-            'data' => [
-                'type' => $type,
-                'attributes' => $input['data'],
-            ],
-        ];
-        $response = $this->client->post(sprintf('/%s', $type), json_encode($body));
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
-        static::assertNotEmpty($response);
-        static::assertArrayHasKey('data', $response);
-        static::assertNotEmpty($response['data']['id']);
-    }
-
-    /**
-     * Data provider for `testPatch`
-     */
-    public function patchProvider(): array
-    {
-        return [
-            'document' => [
-                [
-                    // new document data
-                    'type' => 'documents',
-                    'data' => [
-                        'title' => 'this is a test document',
-                    ],
-                ],
-                // expected response from patch
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `patch`.
-     *
-     * @param mixed $input Input data for patch
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @dataProvider patchProvider
-     * @covers ::patch()
-     */
-    public function testPatch($input, $expected): void
-    {
-        $this->authenticate();
-
-        $type = $input['type'];
-        $title = $input['data']['title'];
-        $input['data']['title'] = 'another title before patch';
-        $response = $this->client->save($type, $input['data']);
-        $id = $response['data']['id'];
-        $input['data']['title'] = $title;
-        $body = [
-            'data' => [
-                'id' => $id,
-                'type' => $type,
-                'attributes' => $input['data'],
-            ],
-        ];
-        $response = $this->client->patch(sprintf('/%s/%s', $type, $id), json_encode($body));
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
-        static::assertNotEmpty($response);
-        static::assertArrayHasKey('data', $response);
-        static::assertNotEmpty($response['data']['id']);
-    }
-
-    /**
-     * Data provider for `testDelete`
-     */
-    public function deleteProvider(): array
-    {
-        return [
-            'document' => [
-                [
-                    // new document data
-                    'type' => 'documents',
-                    'data' => [
-                        'title' => 'this is a test document',
-                    ],
-                ],
-                // expected response from delete
-                [
-                    'code' => 204,
-                    'message' => 'No Content',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `delete`.
-     *
-     * @param mixed $input Input data for delete
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @dataProvider deleteProvider
-     * @covers ::delete()
-     */
-    public function testDelete($input, $expected): void
-    {
-        $this->authenticate();
-
-        $type = $input['type'];
-        $response = $this->client->save($type, $input['data']);
-        $id = $response['data']['id'];
-        $response = $this->client->delete(sprintf('/%s/%s', $type, $id));
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
-        static::assertEmpty($response);
-    }
-
-    /**
      * Test `schema`.
      *
      * @return void
-     *
      * @covers ::schema()
      */
     public function testSchema(): void
@@ -973,7 +825,6 @@ class BEditaClientTest extends TestCase
      * Test `relationData`.
      *
      * @return void
-     *
      * @covers ::relationData()
      */
     public function testRelationData(): void
@@ -1016,67 +867,6 @@ class BEditaClientTest extends TestCase
         // test left and right types inclusion - even if empty arrays
         static::assertEquals([], $response['data']['relationships']['left_object_types']['data']);
         static::assertEquals([], $response['data']['relationships']['right_object_types']['data']);
-    }
-
-    /**
-     * Data provider for `testDelete`
-     */
-    public function responseBodyProvider(): array
-    {
-        return [
-            'get users' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                    'fields' => ['data', 'links', 'meta'],
-                ],
-            ],
-            'get unexisting user' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users/9999999',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                new BEditaClientException('[404] Not Found', 404),
-            ],
-        ];
-    }
-
-    /**
-     * Test `getResponseBody`.
-     *
-     * @param mixed $input Input data
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @covers ::getResponseBody()
-     * @dataProvider responseBodyProvider()
-     */
-    public function testGetResponseBody($input, $expected): void
-    {
-        $response = $this->myclient->authenticate($this->adminUser, $this->adminPassword);
-        $this->myclient->setupTokens($response['meta']);
-        if ($expected instanceof \Exception) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionCode($expected->getCode());
-        }
-        $this->myclient->sendRequestRetry($input['method'], $input['path']);
-        $response = $this->myclient->getResponseBody();
-        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-        static::assertNotEmpty($response);
-        foreach ($expected['fields'] as $key => $val) {
-            static::assertNotEmpty($response[$val]);
-        }
     }
 
     /**
@@ -1170,7 +960,6 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
      * @covers ::sendRequest()
      * @covers ::requestUri()
      * @dataProvider sendRequestProvider()
@@ -1198,140 +987,6 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Data provider for `testSendRequestRetry`
-     */
-    public function sendRequestRetryProvider(): array
-    {
-        return [
-            'get users' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                    'fields' => ['data', 'links', 'meta'],
-                ],
-            ],
-            'get users bad query' => [
-                [
-                    'method' => 'GET',
-                    'path' => '/users/a/b/c',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                new BEditaClientException('[404] Not Found', 404),
-            ],
-            'post users unauthorized' => [
-                [
-                    'method' => 'POST',
-                    'path' => '/users',
-                    'query' => null,
-                    'headers' => null,
-                    'body' => null,
-                ],
-                new BEditaClientException('Unauthorized', 401),
-            ],
-        ];
-    }
-
-    /**
-     * Test `sendRequestRetry`.
-     *
-     * @param mixed $input Input data
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @covers ::sendRequestRetry()
-     * @dataProvider sendRequestRetryProvider()
-     */
-    public function testSendRequestRetry($input, $expected): void
-    {
-        if ($expected instanceof \Exception) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionCode($expected->getCode());
-        }
-        $method = $input['method'];
-        $path = $input['path'];
-        $query = $input['query'];
-        $headers = $input['headers'];
-        $body = $input['body'];
-        $response = $this->myclient->sendRequestRetry($method, $path, $query, $headers, $body);
-        $responseBody = json_decode((string)$response->getBody(), true);
-        static::assertEquals($expected['code'], $this->myclient->getStatusCode());
-        static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
-        static::assertNotEmpty($responseBody);
-        if (!empty($expected['fields'])) {
-            foreach ($expected['fields'] as $key => $val) {
-                static::assertNotEmpty($responseBody[$val]);
-            }
-        }
-    }
-
-    /**
-     * Data provider for `testRefreshTokens`
-     */
-    public function refreshTokensProvider(): array
-    {
-        return [
-            'renew token as not logged' => [
-                ['authenticate' => false],
-                new \BadMethodCallException('You must be logged in to renew token'),
-            ],
-            // FIXME: restore this test when BE 4.7 is released
-            // 'wrong renew token' => [
-            //     ['authenticate' => true, 'token' => 'gustavo' ],
-            //     new BEditaClientException('[401] Wrong number of segments', 401),
-            // ],
-            'renew token as logged' => [
-                ['authenticate' => true],
-                [
-                    'code' => 200,
-                    'message' => 'OK',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Test `refreshTokens`.
-     *
-     * @param mixed $input Input data
-     * @param mixed $expected Expected result
-     * @return void
-     *
-     * @covers ::refreshTokens()
-     * @dataProvider refreshTokensProvider()
-     */
-    public function testRefreshTokens($input, $expected): void
-    {
-        if ($expected instanceof \Exception) {
-            $this->expectException(get_class($expected));
-            $this->expectExceptionCode($expected->getCode());
-            $this->expectExceptionMessage($expected->getMessage());
-        }
-        if ($input['authenticate'] === true) {
-            $this->authenticate();
-        }
-        if (!empty($input['token'])) {
-            $token = [
-                'jwt' => $input['token'],
-                'renew' => $input['token'],
-            ];
-            $this->client->setupTokens($token);
-        }
-        $response = $this->client->refreshTokens();
-        static::assertEquals($expected['code'], $this->client->getStatusCode());
-        static::assertEquals($expected['message'], $this->client->getStatusMessage());
-        static::assertEmpty($response);
-    }
-
-    /**
      * Create new object for test purposes.
      *
      * @param array $input The input data.
@@ -1345,20 +1000,283 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Call protected/private method of a class.
+     * Test several methods in sequence
      *
-     * @param object &$object    Instantiated object that we will run method on.
-     * @param string $methodName Method name to call
-     * @param array  $parameters Array of parameters to pass into method.
-     *
-     * @return mixed Method return.
+     * @return void
+     * @covers ::save()
+     * @covers ::addRelated()
+     * @covers ::getRelated()
+     * @covers ::getObject()
+     * @covers ::removeRelated()
+     * @covers ::deleteObject()
+     * @covers ::remove()
+     * @covers ::restoreObject()
+     * @covers ::upload()
+     * @covers ::createMediaFromStream()
+     * @covers ::createMedia()
+     * @covers ::addStreamToMedia()
+     * @covers ::thumbs()
+     * @covers ::schema()
+     * @covers ::relationData()
      */
-    protected function invokeMethod(&$object, $methodName, array $parameters = [])
+    public function testMultipurpose(): void
     {
-        $reflection = new \ReflectionClass(get_class($object));
-        $method = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
+        $this->authenticate();
 
-        return $method->invokeArgs($object, $parameters);
+        // create a folder
+        $folder = $this->client->save('folders', ['title' => 'my dummy folder']);
+        static::assertNotEmpty($folder['data']['id']);
+        static::assertSame('my dummy folder', $folder['data']['attributes']['title']);
+        $getObjects = $this->client->getObjects('folders');
+        static::assertGreaterThanOrEqual(1, $getObjects['meta']['pagination']['count']);
+        $allFoldersCount = $getObjects['meta']['pagination']['count'];
+
+        // create 10 documents
+        $documents = [];
+        for ($i = 0; $i < 10; $i++) {
+            $documents[$i] = $this->client->save('documents', ['title' => sprintf('my dummy document %d', $i + 1)]);
+            static::assertNotEmpty($documents[$i]['data']['id']);
+            static::assertSame(sprintf('my dummy document %d', $i + 1), $documents[$i]['data']['attributes']['title']);
+        }
+
+        // get documents: should be more or equal to 10
+        $getObjects = $this->client->getObjects('documents');
+        $allDocumentsCount = $getObjects['meta']['pagination']['count'];
+        static::assertGreaterThanOrEqual(10, $getObjects['meta']['pagination']['count']);
+
+        // add 10 documents as folder children
+        $addRelated = $this->client->addRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documents
+            )
+        );
+        static::assertIsArray($addRelated);
+        static::assertArrayHasKey('links', $addRelated);
+        static::assertArrayHasKey('self', $addRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/relationships/children', $folder['data']['id']),
+            $addRelated['links']['self']
+        );
+
+        // get folder children
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(10, $getRelated['meta']['pagination']['count']);
+        foreach ($getRelated['data'] as $i => $document) {
+            $d = $documents[$i]['data'];
+            static::assertSame($d['id'], $document['id']);
+            static::assertSame($d['type'], $document['type']);
+            // get single document
+            $getObject = $this->client->getObject($document['id'], $document['type']);
+            static::assertSame($d['id'], $getObject['data']['id']);
+            static::assertSame($d['type'], $getObject['data']['type']);
+            static::assertSame($d['attributes']['title'], $getObject['data']['attributes']['title']);
+        }
+        static::assertIsArray($getRelated);
+        static::assertArrayHasKey('links', $getRelated);
+        static::assertArrayHasKey('self', $getRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/children', $folder['data']['id']),
+            $getRelated['links']['self']
+        );
+
+        // remove 5 documents from folder children
+        $removeRelated = $this->client->removeRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                array_slice($documents, 0, 5)
+            )
+        );
+        static::assertIsArray($removeRelated);
+        static::assertArrayHasKey('links', $removeRelated);
+        static::assertArrayHasKey('self', $removeRelated['links']);
+        static::assertStringContainsString(
+            sprintf('/folders/%s/relationships/children', $folder['data']['id']),
+            $removeRelated['links']['self']
+        );
+
+        // get again folder children: should be 5
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(5, $getRelated['meta']['pagination']['count']);
+
+        // replace related folder children with 2 documents
+        $documentsReplace = array_slice($documents, 5, 2);
+        $this->client->replaceRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documentsReplace
+            )
+        );
+
+        // get again folder children: should be 2
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(2, $getRelated['meta']['pagination']['count']);
+
+        // remove all documents from folder children
+        $this->client->removeRelated(
+            $folder['data']['id'],
+            'folders',
+            'children',
+            array_map(
+                function ($document) {
+                    return [
+                        'id' => $document['data']['id'],
+                        'type' => $document['data']['type'],
+                    ];
+                },
+                $documentsReplace
+            )
+        );
+
+        // get again folder children: should be 0
+        $getRelated = $this->client->getRelated($folder['data']['id'], 'folders', 'children');
+        static::assertSame(0, $getRelated['meta']['pagination']['count']);
+
+        // move to trash documents
+        foreach ($documents as $document) {
+            $this->client->deleteObject($document['data']['id'], $document['data']['type']);
+        }
+
+        // count documents: should be 10 less than before
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($allDocumentsCount - 10, $getObjects['meta']['pagination']['count']);
+
+        // restore documents
+        foreach ($documents as $document) {
+            $this->client->restoreObject($document['data']['id'], $document['data']['type']);
+        }
+        // count documents: should be the same number as before
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($allDocumentsCount, $getObjects['meta']['pagination']['count']);
+
+        // move to documents to trash again
+        foreach ($documents as $document) {
+            $this->client->deleteObject($document['data']['id'], $document['data']['type']);
+        }
+        // permanently remove documents
+        foreach ($documents as $document) {
+            $this->client->remove($document['data']['id']);
+        }
+        // move folder to trash
+        $this->client->deleteObject($folder['data']['id'], $folder['data']['type']);
+        // permanently remove folder
+        $this->client->remove($folder['data']['id']);
+
+        // get documents: should be 10 less than before
+        $expectedDocumentsCount = $allDocumentsCount - 10;
+        $getObjects = $this->client->getObjects('documents');
+        static::assertSame($expectedDocumentsCount, $getObjects['meta']['pagination']['count']);
+
+        // get folders: should be 1 less than before
+        $expectedFoldersCount = $allFoldersCount - 1;
+        $getObjects = $this->client->getObjects('folders');
+        static::assertSame($expectedFoldersCount, $getObjects['meta']['pagination']['count']);
+
+        // upload a file
+        $upload = $this->client->upload('test.png', sprintf('%s/tests/files/test.png', getcwd()));
+        static::assertNotEmpty($upload['data']['id']);
+        static::assertSame('test.png', $upload['data']['attributes']['file_name']);
+        $streamId = $upload['data']['id'];
+        $stream = $this->client->get(sprintf('/streams/%s', $streamId));
+        static::assertSame($streamId, $stream['data']['id']);
+        static::assertSame('test.png', $stream['data']['attributes']['file_name']);
+
+        // create media from stream
+        $type = 'images';
+        $title = 'A new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $cmfs = $this->client->createMediaFromStream($streamId, $type, $body);
+        static::assertSame($type, $cmfs['data']['type']);
+        static::assertSame($title, $cmfs['data']['attributes']['title']);
+        static::assertArrayHasKey('included', $cmfs);
+        static::assertArrayHasKey(0, $cmfs['included']);
+        static::assertArrayHasKey('id', $cmfs['included'][0]);
+        static::assertArrayHasKey('attributes', $cmfs['included'][0]);
+        static::assertSame($streamId, $cmfs['included'][0]['id']);
+        static::assertSame('streams', $cmfs['included'][0]['type']);
+
+        // create media
+        $type = 'images';
+        $title = 'Another new image';
+        $attributes = compact('title');
+        $data = compact('type', 'attributes');
+        $body = compact('data');
+        $mediaId = $this->client->createMedia($type, $body);
+        static::assertIsString($mediaId);
+        static::assertNotEmpty($mediaId);
+        $media = $this->client->getObject($mediaId, $type);
+        static::assertSame($mediaId, $media['data']['id']);
+        static::assertSame($type, $media['data']['type']);
+        static::assertSame($title, $media['data']['attributes']['title']);
+
+        // add stream to media
+        $this->client->addStreamToMedia($streamId, $mediaId, $type);
+        $media = $this->client->get(sprintf('/%s/%s', $type, $mediaId));
+        static::assertSame($streamId, $media['included'][0]['id']);
+
+        // get thumbs
+        $thumbs = $this->client->thumbs($mediaId, ['preset' => 'default']);
+        static::assertNotEmpty($thumbs['meta']['thumbnails']);
+        static::assertStringContainsString('/_files/thumbs/', $thumbs['meta']['thumbnails'][0]['url']);
+
+        // get schema
+        $schema = $this->client->schema('documents');
+        static::assertNotEmpty($schema);
+        static::assertStringContainsString('/model/schema/documents', $schema['$id']);
+
+        // create relation
+        $schema = [
+            'properties' => [
+                'isNumber' => [
+                    'type' => 'boolean',
+                    'description' => 'custom params is boolean',
+                ],
+            ],
+        ];
+        $data = [
+            'type' => 'relations',
+            'attributes' => [
+                'name' => 'my_owner_of',
+                'label' => 'Owner of',
+                'inverse_name' => 'my_belongs_to',
+                'inverse_label' => 'Belongs to',
+                'description' => null,
+                'params' => $schema,
+            ],
+        ];
+        $this->client->post('model/relations', json_encode(compact('data')));
+
+        // get relation data
+        $relationData = $this->client->relationData('my_owner_of');
+        static::assertNotEmpty($relationData);
+        static::assertArrayHasKey('data', $relationData);
+        static::assertArrayHasKey('attributes', $relationData['data']);
+        static::assertArrayHasKey('params', $relationData['data']['attributes']);
     }
 }
