@@ -122,6 +122,7 @@ class BEditaClientTest extends TestCase
      *
      * @return void
      * @covers ::authenticate()
+     * @covers ::setDefaultHeaders()
      */
     public function testAuthenticate(): void
     {

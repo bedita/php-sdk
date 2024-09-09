@@ -126,6 +126,17 @@ class BaseClient
     }
 
     /**
+     * Set default headers in use on every request
+     *
+     * @param array $headers Default headers
+     * @return void
+     */
+    public function setDefaultHeaders(array $headers): void
+    {
+        $this->defaultHeaders = $headers;
+    }
+
+    /**
      * Get API base URL used tokens
      *
      * @return string API base URL
