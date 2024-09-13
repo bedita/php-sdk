@@ -383,14 +383,11 @@ class BEditaClient extends BaseClient
      */
     public function restoreObjects(array $ids, string $type = 'objects'): ?array
     {
-        return $this->patch(
-            '/trash',
-            json_encode([
-                'data' => [
-                    'id' => $ids,
-                    'type' => $type,
-                ],
-            ])
-        );
+        $res = null;
+        foreach ($ids as $id) {
+            $res = !empty($res) ? $res : $this->restoreObject($id, $type);
+        }
+
+        return $res;
     }
 }

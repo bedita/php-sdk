@@ -743,13 +743,13 @@ class BEditaClientTest extends TestCase
         static::assertEquals(204, $this->client->getStatusCode());
         static::assertEquals('No Content', $this->client->getStatusMessage());
         static::assertEmpty($response);
-        $response = $this->client->getObject($ids[0], $type);
+        $response = $this->client->getObjects($type, ['filter' => ['id' => $ids[0]]]);
         static::assertEmpty($response['data']);
         $response = $this->client->restoreObjects($ids, $type);
         static::assertEquals(204, $this->client->getStatusCode());
         static::assertEquals('No Content', $this->client->getStatusMessage());
         static::assertEmpty($response);
-        $response = $this->client->getObject($ids[0], $type);
+        $response = $this->client->getObjects($type, ['filter' => ['id' => $ids[0]]]);
         static::assertNotEmpty($response['data']);
         $response = $this->client->removeObjects($ids, $type);
         static::assertEquals(204, $this->client->getStatusCode());
