@@ -15,7 +15,6 @@ namespace BEdita\SDK\Test\TestCase;
 
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
-use Cake\Utility\Hash;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -1059,7 +1058,7 @@ class BEditaClientTest extends TestCase
     {
         $response = $this->client->save($input['type'], $input['data']);
 
-        return (int)Hash::get($response, 'data.id');
+        return (int)$response['data']['id'];
     }
 
     /**
