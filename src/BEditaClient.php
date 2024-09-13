@@ -188,7 +188,17 @@ class BEditaClient extends BaseClient
      */
     public function deleteObjects(array $ids, string $type = 'objects'): ?array
     {
-        return $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
+        $response = null;
+        try {
+            $response = $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
+        } catch (\Exception $e) {
+            // fallback to delete one by one, to be retrocompatible
+            foreach ($ids as $id) {
+                $response = !empty($response) ? $response : $this->deleteObject($id, $type);
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -210,7 +220,17 @@ class BEditaClient extends BaseClient
      */
     public function removeObjects(array $ids): ?array
     {
-        return $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
+        $response = null;
+        try {
+            $response = $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
+        } catch (\Exception $e) {
+            // fallback to delete one by one, to be retrocompatible
+            foreach ($ids as $id) {
+                $response = !empty($response) ? $response : $this->remove($id);
+            }
+        }
+
+        return $response;
     }
 
     /**

@@ -731,15 +731,6 @@ class BEditaClientTest extends TestCase
      */
     public function testDeleteRemoveRestore(): void
     {
-        $response = $this->client->get('/home');
-        $version = $response['meta']['version'];
-        $apiMajor = substr($version, 0, strpos($version, '.'));
-        if ($apiMajor === '4') {
-            // skip on be4
-            $this->markTestSkipped('Delete multiple available from BEdita v5.28.0');
-
-            return;
-        }
         $this->authenticate();
         $type = 'documents';
         $docId = $this->newObject([
@@ -765,6 +756,50 @@ class BEditaClientTest extends TestCase
         static::assertEquals(204, $this->client->getStatusCode());
         static::assertEquals('No Content', $this->client->getStatusMessage());
         static::assertEmpty($response);
+    }
+
+    /**
+     * Test `deleteObjects` on exception.
+     *
+     * @return void
+     * @covers ::deleteObjects()
+     */
+    public function testDeleteObjects(): void
+    {
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function deleteObject($id, string $type): ?array
+            {
+                return [];
+            }
+        };
+        $response = $client->authenticate($this->adminUser, $this->adminPassword);
+        $client->setupTokens($response['meta']);
+        $type = 'documents';
+        $response = $client->save($type, ['title' => 'this is a test document']);
+        $docId = $response['data']['id'];
+        $ids = [$docId, 'abc'];
+        $actual = $client->deleteObjects($ids, $type);
+        static::assertEmpty($actual);
+    }
+
+    /**
+     * Test `deleteObjects` on exception.
+     *
+     * @return void
+     */
+    public function testDeleteObjectsOnException(): void
+    {
+        $this->authenticate();
+        $type = 'documents';
+        $docId = $this->newObject([
+            'type' => $type,
+            'data' => [
+                'title' => 'this is a test document',
+            ],
+        ]);
+        $ids = [$docId, 'abc'];
+        $this->expectException(BEditaClientException::class);
+        $this->client->deleteObjects($ids, $type);
     }
 
     /**
@@ -819,15 +854,6 @@ class BEditaClientTest extends TestCase
      */
     public function testRestoreObjects(): void
     {
-        $response = $this->client->get('/home');
-        $version = $response['meta']['version'];
-        $apiMajor = substr($version, 0, strpos($version, '.'));
-        if ($apiMajor === '4') {
-            // skip on be4
-            $this->markTestSkipped('Delete multiple available from BEdita v5.28.0');
-
-            return;
-        }
         $this->authenticate();
         $type = 'documents';
         $docId = $this->newObject([
@@ -885,6 +911,55 @@ class BEditaClientTest extends TestCase
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
         static::assertEmpty($response);
+    }
+
+    /**
+     * Test `removeObjects` on exception.
+     *
+     * @return void
+     * @covers removeObjects()
+     */
+    public function testRemoveObjects(): void
+    {
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function remove($id): ?array
+            {
+                if ($id === 'abc') {
+                    return [];
+                }
+
+                return $this->delete(sprintf('/trash/%s', $id));
+            }
+        };
+        $response = $client->authenticate($this->adminUser, $this->adminPassword);
+        $client->setupTokens($response['meta']);
+        $type = 'documents';
+        $response = $client->save($type, ['title' => 'this is a test document']);
+        $docId = $response['data']['id'];
+        $response = $client->deleteObject($docId, $type);
+        $ids = [$docId, 'abc'];
+        $actual = $client->removeObjects($ids, $type);
+        static::assertEmpty($actual);
+    }
+
+    /**
+     * Test `removeObjects` on exception.
+     *
+     * @return void
+     */
+    public function testRemoveObjectsOnException(): void
+    {
+        $this->authenticate();
+        $type = 'documents';
+        $docId = $this->newObject([
+            'type' => $type,
+            'data' => [
+                'title' => 'this is a test document',
+            ],
+        ]);
+        $ids = [$docId, 'abc'];
+        $this->expectException(BEditaClientException::class);
+        $this->client->removeObjects($ids, $type);
     }
 
     /**
