@@ -752,6 +752,10 @@ class BEditaClientTest extends TestCase
         static::assertEmpty($response);
         $response = $this->client->getObjects($type, ['filter' => ['id' => $ids[0]]]);
         static::assertNotEmpty($response['data']);
+        $response = $this->client->deleteObjects($ids, $type);
+        static::assertEquals(204, $this->client->getStatusCode());
+        static::assertEquals('No Content', $this->client->getStatusMessage());
+        static::assertEmpty($response);
         $response = $this->client->removeObjects($ids, $type);
         static::assertEquals(204, $this->client->getStatusCode());
         static::assertEquals('No Content', $this->client->getStatusMessage());
@@ -917,7 +921,7 @@ class BEditaClientTest extends TestCase
      * Test `removeObjects` on exception.
      *
      * @return void
-     * @covers removeObjects()
+     * @covers ::removeObjects()
      */
     public function testRemoveObjects(): void
     {
@@ -936,7 +940,7 @@ class BEditaClientTest extends TestCase
         $type = 'documents';
         $response = $client->save($type, ['title' => 'this is a test document']);
         $docId = $response['data']['id'];
-        $response = $client->deleteObject($docId, $type);
+        $client->deleteObject($docId, $type);
         $ids = [$docId, 'abc'];
         $actual = $client->removeObjects($ids, $type);
         static::assertEmpty($actual);
