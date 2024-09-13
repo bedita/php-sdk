@@ -188,7 +188,6 @@ class BEditaClient extends BaseClient
      */
     public function deleteObjects(array $ids, string $type = 'objects'): ?array
     {
-        $response = null;
         try {
             $response = $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
         } catch (\Exception $e) {
@@ -220,7 +219,6 @@ class BEditaClient extends BaseClient
      */
     public function removeObjects(array $ids): ?array
     {
-        $response = null;
         try {
             $response = $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
         } catch (\Exception $e) {
