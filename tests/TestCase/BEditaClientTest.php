@@ -15,6 +15,7 @@ namespace BEdita\SDK\Test\TestCase;
 
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
+use Cake\Utility\Hash;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -704,19 +705,56 @@ class BEditaClientTest extends TestCase
     /**
      * Test `deleteObject`.
      *
-     * @param mixed $input Input data for delete
-     * @param mixed $expected Expected result
+     * @param array $input Input data for delete
+     * @param array $expected Expected result
      * @return void
      * @dataProvider deleteObjectProvider
      * @covers ::deleteObject()
      */
-    public function testDeleteObject($input, $expected): void
+    public function testDeleteObject(array $input, array $expected): void
     {
         $this->authenticate();
 
         $response = $this->client->deleteObject($this->newObject($input), $input['type']);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Test `deleteObjects`, `removeObjects` and `restoreObjects.
+     *
+     * @return void
+     * @covers ::deleteObjects()
+     * @covers ::restoreObjects()
+     * @covers ::getObject()
+     */
+    public function testDeleteRemoveRestore(): void
+    {
+        $this->authenticate();
+        $type = 'documents';
+        $docId = $this->newObject([
+            'type' => $type,
+            'data' => [
+                'title' => 'this is a test document',
+            ],
+        ]);
+        $ids = [$docId];
+        $response = $this->client->deleteObjects($ids, $type);
+        static::assertEquals(204, $this->client->getStatusCode());
+        static::assertEquals('No Content', $this->client->getStatusMessage());
+        static::assertEmpty($response);
+        $response = $this->client->getObject($ids[0], $type);
+        static::assertEmpty($response['data']);
+        $response = $this->client->restoreObjects($ids, $type);
+        static::assertEquals(204, $this->client->getStatusCode());
+        static::assertEquals('No Content', $this->client->getStatusMessage());
+        static::assertEmpty($response);
+        $response = $this->client->getObject($ids[0], $type);
+        static::assertNotEmpty($response['data']);
+        $response = $this->client->removeObjects($ids, $type);
+        static::assertEquals(204, $this->client->getStatusCode());
+        static::assertEquals('No Content', $this->client->getStatusMessage());
         static::assertEmpty($response);
     }
 
@@ -760,6 +798,30 @@ class BEditaClientTest extends TestCase
         $response = $this->client->restoreObject($id, $input['type']);
         static::assertEquals($expected['code'], $this->client->getStatusCode());
         static::assertEquals($expected['message'], $this->client->getStatusMessage());
+        static::assertEmpty($response);
+    }
+
+    /**
+     * Test `restoreObjects`.
+     *
+     * @return void
+     * @covers ::restoreObjects()
+     */
+    public function testRestoreObjects(): void
+    {
+        $this->authenticate();
+        $type = 'documents';
+        $docId = $this->newObject([
+            'type' => $type,
+            'data' => [
+                'title' => 'this is a test document',
+            ],
+        ]);
+        $ids = [$docId];
+        $this->client->deleteObjects($ids, $type);
+        $response = $this->client->restoreObjects($ids, $type);
+        static::assertEquals(204, $this->client->getStatusCode());
+        static::assertEquals('No Content', $this->client->getStatusMessage());
         static::assertEmpty($response);
     }
 
@@ -991,13 +1053,13 @@ class BEditaClientTest extends TestCase
      * Create new object for test purposes.
      *
      * @param array $input The input data.
-     * @return int|string the Id.
+     * @return int the Id.
      */
-    private function newObject($input)
+    private function newObject($input): int
     {
         $response = $this->client->save($input['type'], $input['data']);
 
-        return $response['data']['id'];
+        return (int)Hash::get($response, 'data.id');
     }
 
     /**

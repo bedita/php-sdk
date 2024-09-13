@@ -180,6 +180,18 @@ class BEditaClient extends BaseClient
     }
 
     /**
+     * Delete objects (DELETE) => move to trashcan.
+     *
+     * @param array $ids Object ids
+     * @param string|null $type Object type name
+     * @return array|null Response in array format
+     */
+    public function deleteObjects(array $ids, string $type = 'objects'): ?array
+    {
+        return $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
+    }
+
+    /**
      * Remove an object => permanently remove object from trashcan.
      *
      * @param int|string $id Object id
@@ -188,6 +200,17 @@ class BEditaClient extends BaseClient
     public function remove($id): ?array
     {
         return $this->delete(sprintf('/trash/%s', $id));
+    }
+
+    /**
+     * Remove objects => permanently remove objects from trashcan.
+     *
+     * @param array $ids Object ids
+     * @return array|null Response in array format
+     */
+    public function removeObjects(array $ids): ?array
+    {
+        return $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
     }
 
     /**
@@ -341,10 +364,30 @@ class BEditaClient extends BaseClient
     public function restoreObject($id, string $type): ?array
     {
         return $this->patch(
-            sprintf('/%s/%s', 'trash', $id),
+            sprintf('/trash/%s', $id),
             json_encode([
                 'data' => [
                     'id' => $id,
+                    'type' => $type,
+                ],
+            ])
+        );
+    }
+
+    /**
+     * Restore objects from trash
+     *
+     * @param array $ids Object ids
+     * @param string|null $type Object type
+     * @return array|null Response in array format
+     */
+    public function restoreObjects(array $ids, string $type = 'objects'): ?array
+    {
+        return $this->patch(
+            '/trash',
+            json_encode([
+                'data' => [
+                    'id' => $ids,
                     'type' => $type,
                 ],
             ])

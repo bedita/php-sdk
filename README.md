@@ -221,6 +221,10 @@ You can trash an object with `delete(string $path, mixed $body = null, ?array $h
 
     // delete document by ID 99999 and type documents
     $response = $client->deleteObject(99999, 'documents'); // arguments passed are string|int $id, string $type
+
+    // delete multiple
+    $response = $client->deleteObjects([999991, 999992, 999993], 'documents');
+
 ```
 
 #### Restore data
@@ -230,6 +234,9 @@ Data in trashcan can be restored with `restoreObject(int|string $id, string $typ
 ```php
     // restore document 99999
     $response = $client->restoreObject(99999, 'documents'); // arguments passed are string|int $id, string $type
+
+    // restore multiple
+    $response = $client->restoreObjects([999991, 999992, 999993], 'documents');
 ```
 
 #### Hard delete
@@ -243,6 +250,9 @@ You can remove an object from trashcan with `remove(int|string $id)`.
 
     // permanently remove documents 99999
     $response = $client->remove(99999); // argument passed is string|int $id
+
+    // permanently remove multiple
+    $response = $client->removeObjects([999991, 999992, 999993]);
 ```
 
 ### Working with relations
