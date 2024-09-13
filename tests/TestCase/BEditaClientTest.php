@@ -722,6 +722,7 @@ class BEditaClientTest extends TestCase
 
     /**
      * Test `deleteObjects`, `removeObjects` and `restoreObjects.
+     * Skip on be4 (delete multiple available from BEdita v5.28.0).
      *
      * @return void
      * @covers ::deleteObjects()
@@ -730,6 +731,15 @@ class BEditaClientTest extends TestCase
      */
     public function testDeleteRemoveRestore(): void
     {
+        $response = $this->client->get('/home');
+        $version = $response['meta']['version'];
+        $apiMajor = substr($version, 0, strpos($version, '.'));
+        if ($apiMajor === '4') {
+            // skip on be4
+            $this->markTestSkipped('Delete multiple available from BEdita v5.28.0');
+
+            return;
+        }
         $this->authenticate();
         $type = 'documents';
         $docId = $this->newObject([
@@ -802,12 +812,22 @@ class BEditaClientTest extends TestCase
 
     /**
      * Test `restoreObjects`.
+     * Skip on be4 (delete multiple available from BEdita v5.28.0).
      *
      * @return void
      * @covers ::restoreObjects()
      */
     public function testRestoreObjects(): void
     {
+        $response = $this->client->get('/home');
+        $version = $response['meta']['version'];
+        $apiMajor = substr($version, 0, strpos($version, '.'));
+        if ($apiMajor === '4') {
+            // skip on be4
+            $this->markTestSkipped('Delete multiple available from BEdita v5.28.0');
+
+            return;
+        }
         $this->authenticate();
         $type = 'documents';
         $docId = $this->newObject([
