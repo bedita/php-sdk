@@ -604,10 +604,10 @@ class BaseClientTest extends TestCase
     }
 
     /**
-     * Test `refreshToken` on Invalid response from server.
+     * Test `refreshTokens` on Invalid response from server.
      *
      * @return void
-     * @covers ::refreshToken()
+     * @covers ::refreshTokens()
      */
     public function testRefreshTokenInvalidResponseFromServer(): void
     {

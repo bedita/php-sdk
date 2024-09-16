@@ -180,6 +180,27 @@ class BEditaClient extends BaseClient
     }
 
     /**
+     * Delete objects (DELETE) => move to trashcan.
+     *
+     * @param array $ids Object ids
+     * @param string|null $type Object type name
+     * @return array|null Response in array format
+     */
+    public function deleteObjects(array $ids, string $type = 'objects'): ?array
+    {
+        try {
+            $response = $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
+        } catch (\Exception $e) {
+            // fallback to delete one by one, to be retrocompatible
+            foreach ($ids as $id) {
+                $response = !empty($response) ? $response : $this->deleteObject($id, $type);
+            }
+        }
+
+        return $response;
+    }
+
+    /**
      * Remove an object => permanently remove object from trashcan.
      *
      * @param int|string $id Object id
@@ -188,6 +209,26 @@ class BEditaClient extends BaseClient
     public function remove($id): ?array
     {
         return $this->delete(sprintf('/trash/%s', $id));
+    }
+
+    /**
+     * Remove objects => permanently remove objects from trashcan.
+     *
+     * @param array $ids Object ids
+     * @return array|null Response in array format
+     */
+    public function removeObjects(array $ids): ?array
+    {
+        try {
+            $response = $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
+        } catch (\Exception $e) {
+            // fallback to delete one by one, to be retrocompatible
+            foreach ($ids as $id) {
+                $response = !empty($response) ? $response : $this->remove($id);
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -341,7 +382,7 @@ class BEditaClient extends BaseClient
     public function restoreObject($id, string $type): ?array
     {
         return $this->patch(
-            sprintf('/%s/%s', 'trash', $id),
+            sprintf('/trash/%s', $id),
             json_encode([
                 'data' => [
                     'id' => $id,
@@ -349,5 +390,22 @@ class BEditaClient extends BaseClient
                 ],
             ])
         );
+    }
+
+    /**
+     * Restore objects from trash
+     *
+     * @param array $ids Object ids
+     * @param string|null $type Object type
+     * @return array|null Response in array format
+     */
+    public function restoreObjects(array $ids, string $type = 'objects'): ?array
+    {
+        $res = null;
+        foreach ($ids as $id) {
+            $res = !empty($res) ? $res : $this->restoreObject($id, $type);
+        }
+
+        return $res;
     }
 }
