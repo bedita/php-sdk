@@ -410,4 +410,30 @@ class BEditaClient extends BaseClient
 
         return $res;
     }
+
+    /**
+     * Clone an object.
+     * This requires BEdita API >= 5.36.0
+     *
+     * @param string $type Object type name
+     * @param string $id Source object id
+     * @param array $modified Object attributes to overwrite
+     * @param array $included Associations included: can be 'relationships' and 'translations'
+     * @param array|null $headers Custom request headers
+     * @return array|null Response in array format
+     */
+    public function clone(string $type, string $id, array $modified, array $included, ?array $headers = null): ?array
+    {
+        $body = json_encode([
+            'data' => [
+                'type' => $type,
+                'attributes' => $modified,
+                'meta' => [
+                    'included' => $included,
+                ],
+            ],
+        ]);
+
+        return $this->post(sprintf('/%s/%s/actions/clone', $type, $id), $body, $headers);
+    }
 }
