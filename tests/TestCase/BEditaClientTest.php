@@ -1441,15 +1441,9 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('attributes', $relationData['data']);
         static::assertArrayHasKey('params', $relationData['data']['attributes']);
 
-        // test clone if BE version >= 5.36
-        $response = $this->client->get('/home');
-        $version = $response['meta']['version'];
-        $major = (int)explode('.', $version)[0];
-        $minor = (int)explode('.', $version)[1];
-        if ($major >= 5 && $minor >= 36) {
-            $clone = $this->client->clone('images', $mediaId, ['title' => 'Cloned image'], ['relationships', 'translations']);
-            static::assertNotEmpty($clone['data']['id']);
-            static::assertSame('Cloned image', $clone['data']['attributes']['title']);
-        }
+        // test clone
+        $clone = $this->client->clone('images', $mediaId, ['title' => 'Cloned image'], ['relationships', 'translations']);
+        static::assertNotEmpty($clone['data']['id']);
+        static::assertSame('Cloned image', $clone['data']['attributes']['title']);
     }
 }
