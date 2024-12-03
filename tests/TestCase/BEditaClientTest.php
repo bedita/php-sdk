@@ -1179,6 +1179,7 @@ class BEditaClientTest extends TestCase
      * @covers ::thumbs()
      * @covers ::schema()
      * @covers ::relationData()
+     * @covers ::clone()
      */
     public function testMultipurpose(): void
     {
@@ -1439,5 +1440,10 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('data', $relationData);
         static::assertArrayHasKey('attributes', $relationData['data']);
         static::assertArrayHasKey('params', $relationData['data']['attributes']);
+
+        // test clone
+        $clone = $this->client->clone('images', $mediaId, ['title' => 'Cloned image'], ['relationships', 'translations']);
+        static::assertNotEmpty($clone['data']['id']);
+        static::assertSame('Cloned image', $clone['data']['attributes']['title']);
     }
 }
