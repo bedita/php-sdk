@@ -418,18 +418,18 @@ class BEditaClient extends BaseClient
      * @param string $type Object type name
      * @param string $id Source object id
      * @param array $modified Object attributes to overwrite
-     * @param array $included Associations included: can be 'relationships' and 'translations'
+     * @param array $include Associations included: can be 'relationships' and 'translations'
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function clone(string $type, string $id, array $modified, array $included, ?array $headers = null): ?array
+    public function clone(string $type, string $id, array $modified, array $include, ?array $headers = null): ?array
     {
         $body = json_encode([
             'data' => [
                 'type' => $type,
                 'attributes' => $modified,
                 'meta' => [
-                    'included' => $included,
+                    'include' => $include,
                 ],
             ],
         ]);
