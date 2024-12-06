@@ -12,7 +12,7 @@ BEdita PHP Official PHP SDK
 
 ## Prerequisites
 
-* PHP >= 8.1
+* PHP >= 8.3
 * [Composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
 
 ## Install
