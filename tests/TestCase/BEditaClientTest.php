@@ -1442,8 +1442,9 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('params', $relationData['data']['attributes']);
 
         // test clone
-        $clone = $this->client->clone('images', $mediaId, ['title' => 'Cloned image'], ['relationships', 'translations']);
+        $clone = $this->client->clone('images', $mediaId, ['title' => 'Cloned image', 'status' => 'draft'], ['relationships', 'translations']);
         static::assertNotEmpty($clone['data']['id']);
         static::assertSame('Cloned image', $clone['data']['attributes']['title']);
+        static::assertSame('draft', $clone['data']['attributes']['status']);
     }
 }
