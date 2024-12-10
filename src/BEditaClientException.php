@@ -10,10 +10,13 @@
 
 namespace BEdita\SDK;
 
+use Exception;
+use RuntimeException;
+
 /**
  * Network exception thrown by BEdita API Client.
  */
-class BEditaClientException extends \RuntimeException
+class BEditaClientException extends RuntimeException
 {
     /**
      * Array of attributes that are passed in from the constructor, and
@@ -21,21 +24,21 @@ class BEditaClientException extends \RuntimeException
      *
      * @var array
      */
-    protected $attributes = [];
+    protected array $attributes = [];
 
     /**
      * Template string that has attributes sprintf()'ed into it.
      *
      * @var string
      */
-    protected $messageTemplate = '[%s] %s';
+    protected string $messageTemplate = '[%s] %s';
 
     /**
      * Default exception code
      *
      * @var int
      */
-    protected $defaultCode = 503;
+    protected int $defaultCode = 503;
 
     /**
      * Constructor.
@@ -43,12 +46,12 @@ class BEditaClientException extends \RuntimeException
      * Allows you to create exceptions that are treated as framework errors and disabled
      * when debug = 0.
      *
-     * @param string|array $message Either the string of the error message, or an array of attributes
+     * @param array|string $message Either the string of the error message, or an array of attributes
      *   that are made available in the view, and sprintf()'d into Exception::$_messageTemplate
      * @param int|null $code The code of the error, is also the HTTP status code for the error.
      * @param \Exception|null $previous the previous exception.
      */
-    public function __construct($message = '', ?int $code = null, \Exception $previous = null)
+    public function __construct(array|string $message = '', ?int $code = null, ?Exception $previous = null)
     {
         if ($code === null) {
             $code = $this->defaultCode;
