@@ -89,12 +89,12 @@ trait LogTrait
      */
     protected function requestBodyCleanup(RequestInterface $request): string
     {
-        $body = $request->getBody();
+        $body = $request->getBody()->getContents();
         if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode((string)$body, true);
+        $data = (array)json_decode($body, true);
         foreach (['password', 'old_password', 'confirm-password'] as $field) {
             $this->maskPasswordField($data, $field);
         }
@@ -168,12 +168,12 @@ trait LogTrait
      */
     protected function responseBodyCleanup(ResponseInterface $response): string
     {
-        $body = $response->getBody();
+        $body = $response->getBody()->getContents();
         if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode((string)$body, true);
+        $data = (array)json_decode($body, true);
         foreach (['jwt', 'renew'] as $tok) {
             if (!empty($data['meta'][$tok])) {
                 $data['meta'][$tok] = '***************';
