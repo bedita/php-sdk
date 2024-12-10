@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
@@ -13,49 +14,19 @@ declare(strict_types=1);
  */
 namespace BEdita\SDK\Test\TestCase;
 
+use BadMethodCallException;
 use BEdita\SDK\BaseClient;
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
+use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use ReflectionClass;
+use ReflectionProperty;
 
 /**
- * A simple class that extends BaseClient.
- * Used to test protected methods.
- */
-class MyBaseClient extends BaseClient
-{
-    /**
-     * @inheritDoc
-     */
-    public function sendRequestRetry(
-        string $method,
-        string $path,
-        ?array $query = null,
-        ?array $headers = null,
-        $body = null
-    ): ResponseInterface {
-        return parent::sendRequestRetry($method, $path, $query, $headers, $body);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function sendRequest(
-        string $method,
-        string $path,
-        ?array $query = null,
-        ?array $headers = null,
-        $body = null
-    ): ResponseInterface {
-        return parent::sendRequest($method, $path, $query, $headers, $body);
-    }
-}
-
-/**
- * \BEdita\SDK\BaseClient Test Case
- *
- * @coversDefaultClass \BEdita\SDK\BaseClient
+ * Test for class BaseClient
  */
 class BaseClientTest extends TestCase
 {
@@ -64,49 +35,49 @@ class BaseClientTest extends TestCase
      *
      * @var string
      */
-    private $apiBaseUrl = null;
+    private string $apiBaseUrl;
 
     /**
      * Test API KEY
      *
      * @var string
      */
-    private $apiKey = null;
+    private string $apiKey;
 
     /**
      * Test Admin user
      *
      * @var string
      */
-    private $adminUser = null;
+    private string $adminUser;
 
     /**
      * Test Admin user
      *
      * @var string
      */
-    private $adminPassword = null;
+    private string $adminPassword;
 
     /**
      * Test client class
      *
      * @var \BEdita\SDK\BaseClient
      */
-    private $client = null;
+    private BaseClient $client;
 
     /**
      * BEdita client class
      *
      * @var \BEdita\SDK\BEditaClient
      */
-    private $beditaClient = null;
+    private BaseClient $beditaClient;
 
     /**
      * Test client class for protected methods testing
      *
      * @var \BEdita\SDK\Test\TestCase\MyBaseClient
      */
-    private $myclient = null;
+    private MyBaseClient $myclient;
 
     /**
      * @inheritDoc
@@ -114,10 +85,10 @@ class BaseClientTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->apiBaseUrl = getenv('BEDITA_API');
-        $this->apiKey = getenv('BEDITA_API_KEY');
-        $this->adminUser = getenv('BEDITA_ADMIN_USR');
-        $this->adminPassword = getenv('BEDITA_ADMIN_PWD');
+        $this->apiBaseUrl = (string)getenv('BEDITA_API');
+        $this->apiKey = (string)getenv('BEDITA_API_KEY');
+        $this->adminUser = (string)getenv('BEDITA_ADMIN_USR');
+        $this->adminPassword = (string)getenv('BEDITA_ADMIN_PWD');
         $this->client = new BaseClient($this->apiBaseUrl, $this->apiKey);
         $this->myclient = new MyBaseClient($this->apiBaseUrl, $this->apiKey);
         $this->beditaClient = new BEditaClient($this->apiBaseUrl, $this->apiKey);
@@ -127,7 +98,6 @@ class BaseClientTest extends TestCase
      * Test client constructor
      *
      * @return void
-     * @covers ::__construct()
      */
     public function testConstruct(): void
     {
@@ -140,7 +110,6 @@ class BaseClientTest extends TestCase
      * Test `setupTokens` method
      *
      * @return void
-     * @covers ::setupTokens()
      */
     public function testSetupTokens(): void
     {
@@ -160,10 +129,6 @@ class BaseClientTest extends TestCase
      * Test getters
      *
      * @return void
-     * @covers ::getDefaultHeaders()
-     * @covers ::getApiBaseUrl()
-     * @covers ::getTokens()
-     * @covers ::getResponse()
      */
     public function testGetters(): void
     {
@@ -187,9 +152,6 @@ class BaseClientTest extends TestCase
      * Test code/message/response body method
      *
      * @return void
-     * @covers ::getStatusCode()
-     * @covers ::getStatusMessage()
-     * @covers ::getResponseBody()
      */
     public function testCodeMessageResponse(): void
     {
@@ -207,7 +169,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testGetResponseBody`
      */
-    public function responseBodyProvider(): array
+    public static function responseBodyProvider(): array
     {
         return [
             'get users' => [
@@ -243,15 +205,13 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
-     * @covers ::getResponseBody()
-     * @dataProvider responseBodyProvider()
      */
+    #[DataProvider('responseBodyProvider')]
     public function testGetResponseBody($input, $expected): void
     {
         $response = $this->beditaClient->authenticate($this->adminUser, $this->adminPassword);
         $this->myclient->setupTokens($response['meta']);
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
         }
@@ -260,7 +220,7 @@ class BaseClientTest extends TestCase
         static::assertEquals($expected['code'], $this->myclient->getStatusCode());
         static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
         static::assertNotEmpty($response);
-        foreach ($expected['fields'] as $key => $val) {
+        foreach ($expected['fields'] as $val) {
             static::assertNotEmpty($response[$val]);
         }
     }
@@ -268,7 +228,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testSendRequest`
      */
-    public function sendRequestProvider(): array
+    public static function sendRequestProvider(): array
     {
         return [
             'get users' => [
@@ -356,14 +316,11 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
-     * @covers ::sendRequest()
-     * @covers ::requestUri()
-     * @dataProvider sendRequestProvider()
      */
+    #[DataProvider('sendRequestProvider')]
     public function testSendRequest($input, $expected): void
     {
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
             $this->expectExceptionMessage($expected->getMessage());
@@ -378,7 +335,7 @@ class BaseClientTest extends TestCase
         static::assertEquals($expected['code'], $this->myclient->getStatusCode());
         static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
         static::assertNotEmpty($responseBody);
-        foreach ($expected['fields'] as $key => $val) {
+        foreach ($expected['fields'] as $val) {
             static::assertNotEmpty($responseBody[$val]);
         }
     }
@@ -386,7 +343,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testSendRequestRetry`
      */
-    public function sendRequestRetryProvider(): array
+    public static function sendRequestRetryProvider(): array
     {
         return [
             'get users' => [
@@ -432,12 +389,11 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     * @covers ::sendRequestRetry()
-     * @dataProvider sendRequestRetryProvider()
      */
+    #[DataProvider('sendRequestRetryProvider')]
     public function testSendRequestRetry($input, $expected): void
     {
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
         }
@@ -462,7 +418,6 @@ class BaseClientTest extends TestCase
      * Test `sendRequestRetry` on exception.
      *
      * @return void
-     * @covers ::sendRequestRetry()
      */
     public function testSendRequestRetryOnException(): void
     {
@@ -505,7 +460,6 @@ class BaseClientTest extends TestCase
      * Test `refreshAndRetry`.
      *
      * @return void
-     * @covers ::refreshAndRetry()
      */
     public function testRefreshAndRetry(): void
     {
@@ -543,12 +497,12 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testRefreshTokens`
      */
-    public function refreshTokensProvider(): array
+    public static function refreshTokensProvider(): array
     {
         return [
             'renew token as not logged' => [
                 ['authenticate' => false],
-                new \BadMethodCallException('You must be logged in to renew token'),
+                new BadMethodCallException('You must be logged in to renew token'),
             ],
             'wrong renew token' => [
                 ['authenticate' => true, 'token' => 'gustavo' ],
@@ -571,17 +525,15 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     *
-     * @covers ::refreshTokens()
-     * @dataProvider refreshTokensProvider()
      */
+    #[DataProvider('refreshTokensProvider')]
     public function testRefreshTokens($input, $expected): void
     {
         if (is_string($expected)) {
             $this->expectException(BEditaClientException::class);
             $this->expectExceptionCode($expected);
         }
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
             $this->expectExceptionMessage($expected->getMessage());
@@ -607,7 +559,6 @@ class BaseClientTest extends TestCase
      * Test `refreshTokens` on Invalid response from server.
      *
      * @return void
-     * @covers ::refreshTokens()
      */
     public function testRefreshTokenInvalidResponseFromServer(): void
     {
@@ -630,20 +581,19 @@ class BaseClientTest extends TestCase
      * Test `unsetAuthorization`
      *
      * @return void
-     * @covers ::unsetAuthorization()
      */
     public function testUnsetAuthorization(): void
     {
         // test unset on empty headers Authorization
         $this->invokeMethod($this->client, 'unsetAuthorization', []);
-        $property = new \ReflectionProperty($this->client, 'defaultHeaders');
+        $property = new ReflectionProperty($this->client, 'defaultHeaders');
         $property->setAccessible(true);
         static::assertArrayNotHasKey('Authorization', $property->getValue($this->client));
 
         // populate headers Authorization then test unset
         $property->setValue($this->client, ['Authorization' => 'Bearer *****************']);
         $this->invokeMethod($this->client, 'unsetAuthorization', []);
-        $property = new \ReflectionProperty($this->client, 'defaultHeaders');
+        $property = new ReflectionProperty($this->client, 'defaultHeaders');
         $property->setAccessible(true);
         static::assertArrayNotHasKey('Authorization', $property->getValue($this->client));
     }
@@ -658,7 +608,7 @@ class BaseClientTest extends TestCase
      */
     protected function invokeMethod(&$object, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass(get_class($object));
+        $reflection = new ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
@@ -688,7 +638,6 @@ class BaseClientTest extends TestCase
      * Test `get` method
      *
      * @return void
-     * @covers ::get()
      */
     public function testGet(): void
     {
@@ -700,7 +649,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testPatch`
      */
-    public function patchProvider(): array
+    public static function patchProvider(): array
     {
         return [
             'document' => [
@@ -726,9 +675,8 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data for patch
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider patchProvider
-     * @covers ::patch()
      */
+    #[DataProvider('patchProvider')]
     public function testPatch($input, $expected): void
     {
         $this->authenticate();
@@ -763,7 +711,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testPost`
      */
-    public function postProvider(): array
+    public static function postProvider(): array
     {
         return [
             'document' => [
@@ -789,9 +737,8 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data for post
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider postProvider
-     * @covers ::post()
      */
+    #[DataProvider('postProvider')]
     public function testPost($input, $expected): void
     {
         $this->authenticate();
@@ -814,7 +761,7 @@ class BaseClientTest extends TestCase
     /**
      * Data provider for `testDelete`
      */
-    public function deleteProvider(): array
+    public static function deleteProvider(): array
     {
         return [
             'document' => [
@@ -840,9 +787,8 @@ class BaseClientTest extends TestCase
      * @param mixed $input Input data for delete
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider deleteProvider
-     * @covers ::delete()
      */
+    #[DataProvider('deleteProvider')]
     public function testDelete($input, $expected): void
     {
         $this->authenticate();

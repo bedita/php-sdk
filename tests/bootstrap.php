@@ -1,4 +1,7 @@
 <?php
+declare(strict_types=1);
+
+use josegonzalez\Dotenv\Loader;
 
 /**
  * Use the DS to separate the directories in other defines
@@ -23,7 +26,7 @@ define('TESTS', ROOT . DS . 'tests' . DS);
  * variables as required.
  */
 if (!getenv('BEDITA_API') && file_exists(TESTS . '.env')) {
-    $dotenv = new \josegonzalez\Dotenv\Loader([TESTS . '.env']);
+    $dotenv = new Loader([TESTS . '.env']);
     $dotenv->parse()
         ->putenv()
         ->toEnv()

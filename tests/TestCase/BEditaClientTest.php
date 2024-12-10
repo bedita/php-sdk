@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
@@ -15,35 +16,12 @@ namespace BEdita\SDK\Test\TestCase;
 
 use BEdita\SDK\BEditaClient;
 use BEdita\SDK\BEditaClientException;
+use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * A simple class that extends BEditaClient.
- * Used to test protected methods.
- */
-class MyBEditaClient extends BEditaClient
-{
-    /**
-     * @inheritDoc
-     */
-    public function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): \Psr\Http\Message\ResponseInterface
-    {
-        return parent::sendRequestRetry($method, $path, $query, $headers, $body);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): \Psr\Http\Message\ResponseInterface
-    {
-        return parent::sendRequest($method, $path, $query, $headers, $body);
-    }
-}
-
-/**
- * \BEdita\SDK\BEditaClient Test Case
- *
- * @coversDefaultClass \BEdita\SDK\BEditaClient
+ * Test class for BEditaClient
  */
 class BEditaClientTest extends TestCase
 {
@@ -52,42 +30,42 @@ class BEditaClientTest extends TestCase
      *
      * @var string
      */
-    private $apiBaseUrl = null;
+    private string $apiBaseUrl;
 
     /**
      * Test API KEY
      *
      * @var string
      */
-    private $apiKey = null;
+    private string $apiKey;
 
     /**
      * Test Admin user
      *
      * @var string
      */
-    private $adminUser = null;
+    private string $adminUser;
 
     /**
      * Test Admin user
      *
      * @var string
      */
-    private $adminPassword = null;
+    private string $adminPassword;
 
     /**
      * Test client class
      *
      * @var \BEdita\SDK\BEditaClient
      */
-    private $client = null;
+    private BEditaClient $client;
 
     /**
      * Test client class for protected methods testing
      *
      * @var \BEdita\SDK\Test\TestCase\MyBEditaClient
      */
-    private $myclient = null;
+    private MyBEditaClient $myclient;
 
     /**
      * @inheritDoc
@@ -96,10 +74,10 @@ class BEditaClientTest extends TestCase
     {
         parent::setUp();
 
-        $this->apiBaseUrl = getenv('BEDITA_API');
-        $this->apiKey = getenv('BEDITA_API_KEY');
-        $this->adminUser = getenv('BEDITA_ADMIN_USR');
-        $this->adminPassword = getenv('BEDITA_ADMIN_PWD');
+        $this->apiBaseUrl = (string)getenv('BEDITA_API');
+        $this->apiKey = (string)getenv('BEDITA_API_KEY');
+        $this->adminUser = (string)getenv('BEDITA_ADMIN_USR');
+        $this->adminPassword = (string)getenv('BEDITA_ADMIN_PWD');
         $this->client = new BEditaClient($this->apiBaseUrl, $this->apiKey);
         $this->myclient = new MyBEditaClient($this->apiBaseUrl, $this->apiKey);
     }
@@ -108,7 +86,6 @@ class BEditaClientTest extends TestCase
      * Test client constructor
      *
      * @return void
-     * @covers ::__construct()
      */
     public function testConstruct(): void
     {
@@ -121,8 +98,6 @@ class BEditaClientTest extends TestCase
      * Test `authenticate` method
      *
      * @return void
-     * @covers ::authenticate()
-     * @covers ::setDefaultHeaders()
      */
     public function testAuthenticate(): void
     {
@@ -140,7 +115,6 @@ class BEditaClientTest extends TestCase
      * Test `authenticate` method failure
      *
      * @return void
-     * @covers ::authenticate()
      */
     public function testAuthenticateFail(): void
     {
@@ -165,7 +139,6 @@ class BEditaClientTest extends TestCase
      * Test `getObjects` method
      *
      * @return void
-     * @covers ::getObjects()
      */
     public function testGetObjects(): void
     {
@@ -182,7 +155,6 @@ class BEditaClientTest extends TestCase
      * Test `getObject` method
      *
      * @return void
-     * @covers ::getObject()
      */
     public function testGetObject(): void
     {
@@ -198,7 +170,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testGetRelated`
      */
-    public function getRelatedProvider(): array
+    public static function getRelatedProvider(): array
     {
         return [
             '200 OK, User 1 Roles' => [
@@ -221,9 +193,8 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     * @covers ::getRelated()
-     * @dataProvider getRelatedProvider
      */
+    #[DataProvider('getRelatedProvider')]
     public function testGetRelated($input, $expected): void
     {
         $this->authenticate();
@@ -237,7 +208,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testRelated`
      */
-    public function relatedProvider(): array
+    public static function relatedProvider(): array
     {
         return [
             'folder => parent => folder' => [
@@ -265,7 +236,7 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `addRelated` method
+     * Test `addRelated`, `removeRelated`, `replaceRelated` methods
      *
      * @param mixed $parentType Parent object type
      * @param mixed $parentData Parent object data
@@ -274,11 +245,8 @@ class BEditaClientTest extends TestCase
      * @param mixed $relation Relationship name
      * @param mixed $expected Expected result
      * @return void
-     * @covers ::addRelated()
-     * @covers ::removeRelated()
-     * @covers ::replaceRelated()
-     * @dataProvider relatedProvider
      */
+    #[DataProvider('relatedProvider')]
     public function testRelated($parentType, $parentData, $childType, $childData, $relation, $expected): void
     {
         $this->authenticate();
@@ -357,8 +325,6 @@ class BEditaClientTest extends TestCase
      * Test `upload` and `createMediaFromStream` methods
      *
      * @return void
-     * @covers ::upload()
-     * @covers ::createMediaFromStream()
      */
     public function testUploadCreate(): void
     {
@@ -407,7 +373,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testUpload`
      */
-    public function uploadProvider(): array
+    public static function uploadProvider(): array
     {
         return [
             '500 File not found' => [
@@ -457,14 +423,12 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for upload
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider uploadProvider
-     * @covers ::upload()
-     * @covers ::createMediaFromStream()
      */
+    #[DataProvider('uploadProvider')]
     public function testUpload($input, $expected): void
     {
         $this->authenticate();
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionMessage($expected->getMessage());
         }
@@ -478,11 +442,9 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `createMedia`
+     * Test `createMedia` and `addStreamToMedia` methods
      *
      * @return void
-     * @covers ::createMedia()
-     * @covers ::addStreamToMedia()
      */
     public function testCreateMediaAndAddToStream(): void
     {
@@ -510,13 +472,12 @@ class BEditaClientTest extends TestCase
      * Test `createMedia` when post return empty array
      *
      * @return void
-     * @covers ::createMedia()
      */
     public function testCreateMediaException(): void
     {
         // mock post to return empty array
         $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
-            public function post(string $path, $body, ?array $headers = null): ?array
+            public function post(string $path, ?string $body = null, ?array $headers = null): ?array
             {
                 return [];
             }
@@ -538,13 +499,12 @@ class BEditaClientTest extends TestCase
      * Test `addStreamToMedia` when patch return empty array
      *
      * @return void
-     * @covers ::addStreamToMedia()
      */
     public function testAddStreamToMediaException(): void
     {
         // mock patch to return empty array
         $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
-            public function patch(string $path, $body, ?array $headers = null): ?array
+            public function patch(string $path, ?string $body = null, ?array $headers = null): ?array
             {
                 return [];
             }
@@ -559,7 +519,6 @@ class BEditaClientTest extends TestCase
      * Test `thumbs` method
      *
      * @return void
-     * @covers ::thumbs()
      */
     public function testThumbs(): void
     {
@@ -573,7 +532,7 @@ class BEditaClientTest extends TestCase
         // test thumbs(:id, :query)
         $query = ['preset' => 'default'];
         foreach ($ids as $id) {
-            $response = $this->client->thumbs($id, $query);
+            $response = $this->client->thumbs(intval($id), $query);
             static::assertNotEmpty($response['meta']);
             static::assertNotEmpty($response['meta']['thumbnails']);
         }
@@ -619,7 +578,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testSave`
      */
-    public function saveProvider(): array
+    public static function saveProvider(): array
     {
         return [
             'document' => [
@@ -650,9 +609,8 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for save
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider saveProvider
-     * @covers ::save()
      */
+    #[DataProvider('saveProvider')]
     public function testSave($input, $expected): void
     {
         $this->authenticate();
@@ -682,7 +640,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testDeleteObject`
      */
-    public function deleteObjectProvider(): array
+    public static function deleteObjectProvider(): array
     {
         return [
             'document' => [
@@ -707,9 +665,8 @@ class BEditaClientTest extends TestCase
      * @param array $input Input data for delete
      * @param array $expected Expected result
      * @return void
-     * @dataProvider deleteObjectProvider
-     * @covers ::deleteObject()
      */
+    #[DataProvider('deleteObjectProvider')]
     public function testDeleteObject(array $input, array $expected): void
     {
         $this->authenticate();
@@ -722,12 +679,8 @@ class BEditaClientTest extends TestCase
 
     /**
      * Test `deleteObjects`, `removeObjects` and `restoreObjects.
-     * Skip on be4 (delete multiple available from BEdita v5.28.0).
      *
      * @return void
-     * @covers ::deleteObjects()
-     * @covers ::restoreObjects()
-     * @covers ::getObject()
      */
     public function testDeleteRemoveRestore(): void
     {
@@ -766,7 +719,6 @@ class BEditaClientTest extends TestCase
      * Test `deleteObjects` on exception.
      *
      * @return void
-     * @covers ::deleteObjects()
      */
     public function testDeleteObjects(): void
     {
@@ -809,7 +761,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testRestoreObject`
      */
-    public function restoreObjectProvider(): array
+    public static function restoreObjectProvider(): array
     {
         return [
             'document' => [
@@ -834,9 +786,8 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for restore
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider restoreObjectProvider
-     * @covers ::restoreObject()
      */
+    #[DataProvider('restoreObjectProvider')]
     public function testRestoreObject($input, $expected): void
     {
         $this->authenticate();
@@ -851,10 +802,8 @@ class BEditaClientTest extends TestCase
 
     /**
      * Test `restoreObjects`.
-     * Skip on be4 (delete multiple available from BEdita v5.28.0).
      *
      * @return void
-     * @covers ::restoreObjects()
      */
     public function testRestoreObjects(): void
     {
@@ -877,7 +826,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testRemove`
      */
-    public function removeProvider(): array
+    public static function removeProvider(): array
     {
         return [
             'document' => [
@@ -902,9 +851,8 @@ class BEditaClientTest extends TestCase
      * @param mixed $input Input data for remove
      * @param mixed $expected Expected result
      * @return void
-     * @dataProvider removeProvider
-     * @covers ::remove()
      */
+    #[DataProvider('removeProvider')]
     public function testRemove($input, $expected): void
     {
         $this->authenticate();
@@ -921,7 +869,6 @@ class BEditaClientTest extends TestCase
      * Test `removeObjects` on exception.
      *
      * @return void
-     * @covers ::removeObjects()
      */
     public function testRemoveObjects(): void
     {
@@ -970,7 +917,6 @@ class BEditaClientTest extends TestCase
      * Test `schema`.
      *
      * @return void
-     * @covers ::schema()
      */
     public function testSchema(): void
     {
@@ -986,7 +932,6 @@ class BEditaClientTest extends TestCase
      * Test `relationData`.
      *
      * @return void
-     * @covers ::relationData()
      */
     public function testRelationData(): void
     {
@@ -1033,7 +978,7 @@ class BEditaClientTest extends TestCase
     /**
      * Data provider for `testSendRequest`
      */
-    public function sendRequestProvider(): array
+    public static function sendRequestProvider(): array
     {
         return [
             'get users' => [
@@ -1116,18 +1061,16 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test `sendRequest`.
+     * Test `sendRequest` and `requestUri` methods.
      *
      * @param mixed $input Input data
      * @param mixed $expected Expected result
      * @return void
-     * @covers ::sendRequest()
-     * @covers ::requestUri()
-     * @dataProvider sendRequestProvider()
      */
+    #[DataProvider('sendRequestProvider')]
     public function testSendRequest($input, $expected): void
     {
-        if ($expected instanceof \Exception) {
+        if ($expected instanceof Exception) {
             $this->expectException(get_class($expected));
             $this->expectExceptionCode($expected->getCode());
             $this->expectExceptionMessage($expected->getMessage());
@@ -1142,7 +1085,7 @@ class BEditaClientTest extends TestCase
         static::assertEquals($expected['code'], $this->myclient->getStatusCode());
         static::assertEquals($expected['message'], $this->myclient->getStatusMessage());
         static::assertNotEmpty($responseBody);
-        foreach ($expected['fields'] as $key => $val) {
+        foreach ($expected['fields'] as $val) {
             static::assertNotEmpty($responseBody[$val]);
         }
     }
@@ -1161,25 +1104,26 @@ class BEditaClientTest extends TestCase
     }
 
     /**
-     * Test several methods in sequence
+     * Test several methods in sequence:
+     *
+     * - save
+     * - addRelated
+     * - getRelated
+     * - getObject
+     * - removeRelated
+     * - deleteObject
+     * - remove
+     * - restoreObject
+     * - upload
+     * - createMediaFromStream
+     * - createMedia
+     * - addStreamToMedia
+     * - thumbs
+     * - schema
+     * - relationData
+     * - clone
      *
      * @return void
-     * @covers ::save()
-     * @covers ::addRelated()
-     * @covers ::getRelated()
-     * @covers ::getObject()
-     * @covers ::removeRelated()
-     * @covers ::deleteObject()
-     * @covers ::remove()
-     * @covers ::restoreObject()
-     * @covers ::upload()
-     * @covers ::createMediaFromStream()
-     * @covers ::createMedia()
-     * @covers ::addStreamToMedia()
-     * @covers ::thumbs()
-     * @covers ::schema()
-     * @covers ::relationData()
-     * @covers ::clone()
      */
     public function testMultipurpose(): void
     {
@@ -1403,7 +1347,7 @@ class BEditaClientTest extends TestCase
         static::assertSame($streamId, $media['included'][0]['id']);
 
         // get thumbs
-        $thumbs = $this->client->thumbs($mediaId, ['preset' => 'default']);
+        $thumbs = $this->client->thumbs(intval($mediaId), ['preset' => 'default']);
         static::assertNotEmpty($thumbs['meta']['thumbnails']);
         static::assertStringContainsString('/_files/thumbs/', $thumbs['meta']['thumbnails'][0]['url']);
 

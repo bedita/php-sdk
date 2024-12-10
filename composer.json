@@ -25,10 +25,10 @@
         "woohoolabs/yang": "^3.0"
     },
     "require-dev": {
-        "cakephp/cakephp-codesniffer": "^3.0",
+        "cakephp/cakephp-codesniffer": "^5.0",
         "josegonzalez/dotenv": "2.*",
-        "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^9.0",
+        "phpstan/phpstan": "^1.12",
+        "phpunit/phpunit": "^10.5.5 || ^11.1.3",
         "psy/psysh": "@stable",
         "vimeo/psalm": "^5.18"
     },
@@ -64,6 +64,9 @@
     },
     "prefer-stable": true,
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }
