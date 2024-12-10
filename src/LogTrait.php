@@ -90,11 +90,11 @@ trait LogTrait
     protected function requestBodyCleanup(RequestInterface $request): string
     {
         $body = $request->getBody();
-        if (empty((string)$body)) {
+        if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode($body, true);
+        $data = json_decode((string)$body, true);
         foreach (['password', 'old_password', 'confirm-password'] as $field) {
             $this->maskPasswordField($data, $field);
         }
