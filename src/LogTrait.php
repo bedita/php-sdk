@@ -169,11 +169,11 @@ trait LogTrait
     protected function responseBodyCleanup(ResponseInterface $response): string
     {
         $body = $response->getBody();
-        if (empty((string)$body)) {
+        if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode($body, true);
+        $data = json_decode((string)$body, true);
         foreach (['jwt', 'renew'] as $tok) {
             if (!empty($data['meta'][$tok])) {
                 $data['meta'][$tok] = '***************';
