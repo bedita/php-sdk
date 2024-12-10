@@ -26,9 +26,9 @@ class BaseClient
     /**
      * Last response.
      *
-     * @var \Psr\Http\Message\ResponseInterface|null
+     * @var \Psr\Http\Message\ResponseInterface
      */
-    private ?ResponseInterface $response = null;
+    private ResponseInterface $response;
 
     /**
      * BEdita API base URL
@@ -72,9 +72,9 @@ class BaseClient
     /**
      * JSON API BEdita client
      *
-     * @var \WoohooLabs\Yang\JsonApi\Client\JsonApiClient|null
+     * @var \WoohooLabs\Yang\JsonApi\Client\JsonApiClient
      */
-    private ?JsonApiClient $jsonApiClient = null;
+    private JsonApiClient $jsonApiClient;
 
     /**
      * Setup main client options:
@@ -161,9 +161,9 @@ class BaseClient
     /**
      * Get last HTTP response
      *
-     * @return \Psr\Http\Message\ResponseInterface|null Response PSR interface
+     * @return \Psr\Http\Message\ResponseInterface Response PSR interface
      */
-    public function getResponse(): ?ResponseInterface
+    public function getResponse(): ResponseInterface
     {
         return $this->response;
     }
