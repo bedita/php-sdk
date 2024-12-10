@@ -161,11 +161,11 @@ class BaseClient
     /**
      * Get last HTTP response
      *
-     * @return \Psr\Http\Message\ResponseInterface Response PSR interface
+     * @return \Psr\Http\Message\ResponseInterface|null Response PSR interface
      */
-    public function getResponse(): ResponseInterface
+    public function getResponse(): ?ResponseInterface
     {
-        return $this->response;
+        return $this->response ?? null;
     }
 
     /**
@@ -176,7 +176,7 @@ class BaseClient
      */
     public function getStatusCode(): ?int
     {
-        return $this->response ? $this->response->getStatusCode() : null;
+        return !empty($this->getResponse()) ? $this->response->getStatusCode() : null;
     }
 
     /**
@@ -187,7 +187,7 @@ class BaseClient
      */
     public function getStatusMessage(): ?string
     {
-        return $this->response ? $this->response->getReasonPhrase() : null;
+        return !empty($this->getResponse()) ? $this->response->getReasonPhrase() : null;
     }
 
     /**
