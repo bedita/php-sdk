@@ -313,7 +313,7 @@ class BaseClient
             $response = $this->getResponseBody();
             // Message will be 'error` array, if absent use status massage
             $message = empty($response['error']) ? $this->getStatusMessage() : $response['error'];
-            throw new BEditaClientException($message, $this->getStatusCode());
+            throw new BEditaClientException((string)$message, $this->getStatusCode());
         }
 
         return $this->response;
