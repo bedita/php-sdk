@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
@@ -11,6 +12,7 @@ declare(strict_types=1);
 
 namespace BEdita\SDK;
 
+use BadMethodCallException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use Http\Adapter\Guzzle7\Client;
@@ -26,28 +28,28 @@ class BaseClient
      *
      * @var \Psr\Http\Message\ResponseInterface
      */
-    private $response = null;
+    private ResponseInterface $response;
 
     /**
      * BEdita API base URL
      *
      * @var string
      */
-    private $apiBaseUrl = null;
+    private string $apiBaseUrl;
 
     /**
      * BEdita API KEY
      *
      * @var string
      */
-    private $apiKey = null;
+    private string $apiKey;
 
     /**
      * Default headers in request
      *
      * @var array
      */
-    private $defaultHeaders = [
+    private array $defaultHeaders = [
         'Accept' => 'application/vnd.api+json',
     ];
 
@@ -56,7 +58,7 @@ class BaseClient
      *
      * @var array
      */
-    private $defaultContentTypeHeader = [
+    private array $defaultContentTypeHeader = [
         'Content-Type' => 'application/json',
     ];
 
@@ -65,14 +67,14 @@ class BaseClient
      *
      * @var array
      */
-    private $tokens = [];
+    private array $tokens = [];
 
     /**
      * JSON API BEdita client
      *
      * @var \WoohooLabs\Yang\JsonApi\Client\JsonApiClient
      */
-    private $jsonApiClient = null;
+    private JsonApiClient $jsonApiClient;
 
     /**
      * Setup main client options:
@@ -89,7 +91,7 @@ class BaseClient
     public function __construct(string $apiUrl, ?string $apiKey = null, array $tokens = [], array $guzzleConfig = [])
     {
         $this->apiBaseUrl = $apiUrl;
-        $this->apiKey = $apiKey;
+        $this->apiKey = (string)$apiKey;
 
         $this->defaultHeaders['X-Api-Key'] = $this->apiKey;
         $this->setupTokens($tokens);
@@ -159,11 +161,11 @@ class BaseClient
     /**
      * Get last HTTP response
      *
-     * @return ResponseInterface|null Response PSR interface
+     * @return \Psr\Http\Message\ResponseInterface|null Response PSR interface
      */
     public function getResponse(): ?ResponseInterface
     {
-        return $this->response;
+        return $this->response ?? null;
     }
 
     /**
@@ -174,7 +176,7 @@ class BaseClient
      */
     public function getStatusCode(): ?int
     {
-        return $this->response ? $this->response->getStatusCode() : null;
+        return !empty($this->getResponse()) ? $this->response->getStatusCode() : null;
     }
 
     /**
@@ -185,7 +187,7 @@ class BaseClient
      */
     public function getStatusMessage(): ?string
     {
-        return $this->response ? $this->response->getReasonPhrase() : null;
+        return !empty($this->getResponse()) ? $this->response->getReasonPhrase() : null;
     }
 
     /**
@@ -216,7 +218,7 @@ class BaseClient
     public function refreshTokens(): void
     {
         if (empty($this->tokens['renew'])) {
-            throw new \BadMethodCallException('You must be logged in to renew token');
+            throw new BadMethodCallException('You must be logged in to renew token');
         }
 
         $headers = [
@@ -239,8 +241,8 @@ class BaseClient
      * @param string $method HTTP Method.
      * @param string $path Endpoint URL path.
      * @param array|null $query Query string parameters.
-     * @param string[]|null $headers Custom request headers.
-     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
+     * @param array<string>|null $headers Custom request headers.
+     * @param \Psr\Http\Message\StreamInterface|resource|string|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      */
     protected function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
@@ -269,8 +271,8 @@ class BaseClient
      * @param string $method HTTP Method.
      * @param string $path Endpoint URL path.
      * @param array|null $query Query string parameters.
-     * @param string[]|null $headers Custom request headers.
-     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
+     * @param array<string>|null $headers Custom request headers.
+     * @param \Psr\Http\Message\StreamInterface|resource|string|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      */
     protected function refreshAndRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
@@ -287,8 +289,8 @@ class BaseClient
      * @param string $method HTTP Method.
      * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
      * @param array|null $query Query string parameters.
-     * @param string[]|null $headers Custom request headers.
-     * @param string|resource|\Psr\Http\Message\StreamInterface|null $body Request body.
+     * @param array<string>|null $headers Custom request headers.
+     * @param \Psr\Http\Message\StreamInterface|resource|string|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \BEdita\SDK\BEditaClientException Throws an exception if server response code is not 20x.
      */
@@ -326,7 +328,7 @@ class BaseClient
      *
      * @param string $path Endpoint URL path (with or without starting `/`) or absolute API path
      * @param array|null $query Query string parameters.
-     * @return Uri
+     * @return \GuzzleHttp\Psr7\Uri
      */
     protected function requestUri(string $path, ?array $query = null): Uri
     {
@@ -380,11 +382,11 @@ class BaseClient
      * Send a PATCH request to modify a single resource or object
      *
      * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
+     * @param string|null $body Request body
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function patch(string $path, $body, ?array $headers = null): ?array
+    public function patch(string $path, ?string $body = null, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('PATCH', $path, null, $headers, $body);
 
@@ -395,11 +397,11 @@ class BaseClient
      * Send a POST request for creating resources or objects or other operations like /auth
      *
      * @param string $path Endpoint URL path to invoke
-     * @param mixed $body Request body
+     * @param string|null $body Request body
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function post(string $path, $body, ?array $headers = null): ?array
+    public function post(string $path, ?string $body = null, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('POST', $path, null, $headers, $body);
 
@@ -410,11 +412,11 @@ class BaseClient
      * Send a DELETE request
      *
      * @param string $path Endpoint URL path to invoke.
-     * @param mixed $body Request body
+     * @param string|null $body Request body
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format.
      */
-    public function delete(string $path, $body = null, ?array $headers = null): ?array
+    public function delete(string $path, ?string $body = null, ?array $headers = null): ?array
     {
         $this->sendRequestRetry('DELETE', $path, null, $headers, $body);
 

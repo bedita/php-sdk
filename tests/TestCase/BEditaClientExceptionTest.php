@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2018 ChannelWeb Srl, Chialab Srl
@@ -13,57 +15,39 @@
 namespace BEdita\SDK\Test\TestCase;
 
 use BEdita\SDK\BEditaClientException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * \BEdita\SDK\BEditaClientException Test Case
- *
- * @coversDefaultClass \BEdita\SDK\BEditaClientException
+ * Test for class BEditaClientException
  */
 class BEditaClientExceptionTest extends TestCase
 {
     /**
-     * Default code for exception
-     *
-     * @var int
-     */
-    private $defaultCode;
-
-    /**
-     * {@inheritDoc}
-     */
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->defaultCode = 500;
-    }
-
-    /**
      * Data provider for `testConstruct`
      */
-    public function exceptionsProvider(): array
+    public static function exceptionsProvider(): array
     {
         return [
             '400' => [
                 ['File not found', 400],
-                new BEditaClientException('File not found', 400),
+                ['File not found', 400],
             ],
             '401' => [
                 ['Unauthorized', 401],
-                new BEditaClientException('Unauthorized', 401),
+                ['Unauthorized', 401],
             ],
             '403' => [
                 ['Forbidden', 403],
-                new BEditaClientException('Forbidden', 403),
+                ['Forbidden', 403],
             ],
             '500' => [
                 [['System error', 'Something very bad happened'], 500],
-                new BEditaClientException(['System error', 'Something very bad happened'], 500),
+                [['System error', 'Something very bad happened'], 500],
             ],
             'null' => [
                 ['File not found', null],
-                new BEditaClientException('File not found', $this->defaultCode),
+                ['File not found', 503],
             ],
         ];
     }
@@ -71,13 +55,14 @@ class BEditaClientExceptionTest extends TestCase
     /**
      * Test exception constructor
      *
+     * @param array $input Input data
+     * @param array $expected Expected data for exception
      * @return void
-     *
-     * @covers ::__construct()
-     * @dataProvider exceptionsProvider()
      */
-    public function testConstruct($input, $expected): void
+    #[DataProvider('exceptionsProvider')]
+    public function testConstruct(array $input, array $expected): void
     {
+        $expected = new BEditaClientException($expected[0], $expected[1]);
         $this->expectException(get_class($expected));
         $this->expectExceptionCode($expected->getCode());
         $this->expectExceptionMessage($expected->getMessage());
@@ -87,13 +72,14 @@ class BEditaClientExceptionTest extends TestCase
     /**
      * Test `getAttributes()`
      *
+     * @param array $input Input data
+     * @param array $expected Expected data for exception
      * @return void
-     *
-     * @covers ::getAttributes()
-     * @dataProvider exceptionsProvider()
      */
-    public function testAttributes($input, $expected): void
+    #[DataProvider('exceptionsProvider')]
+    public function testAttributes(array $input, array $expected): void
     {
+        $expected = new BEditaClientException($expected[0], $expected[1]);
         $this->expectException(get_class($expected));
         if (is_array($input[0])) {
             static::assertEquals($expected->getAttributes(), $input[0]);
