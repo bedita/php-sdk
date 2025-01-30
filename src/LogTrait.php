@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2018 ChannelWeb Srl, Chialab Srl
@@ -23,14 +25,14 @@ trait LogTrait
     /**
      * internal Logger
      *
-     * @var null|Logger
+     * @var \Monolog\Logger|null
      */
-    protected $logger = null;
+    protected ?Logger $logger = null;
 
     /**
      * Get configured logger, may be null
      *
-     * @return Logger|null
+     * @return \Monolog\Logger|null
      * @codeCoverageIgnore
      */
     public function getLogger(): ?Logger
@@ -60,7 +62,7 @@ trait LogTrait
     /**
      * Perform request log
      *
-     * @param RequestInterface $request The request to log
+     * @param \Psr\Http\Message\RequestInterface $request The request to log
      * @return void
      */
     public function logRequest(RequestInterface $request): void
@@ -82,17 +84,17 @@ trait LogTrait
     /**
      * Return request body without sensitive information.
      *
-     * @param RequestInterface $request The request to log
+     * @param \Psr\Http\Message\RequestInterface $request The request to log
      * @return string
      */
     protected function requestBodyCleanup(RequestInterface $request): string
     {
-        $body = $request->getBody();
-        if (empty((string)$body)) {
+        $body = $request->getBody()->getContents();
+        if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode($body, true);
+        $data = (array)json_decode($body, true);
         foreach (['password', 'old_password', 'confirm-password'] as $field) {
             $this->maskPasswordField($data, $field);
         }
@@ -121,7 +123,7 @@ trait LogTrait
     /**
      * Return request headers as string without sensitive information.
      *
-     * @param RequestInterface $request The request to log
+     * @param \Psr\Http\Message\RequestInterface $request The request to log
      * @return string
      */
     protected function requestHeadersCleanup(RequestInterface $request): string
@@ -139,7 +141,7 @@ trait LogTrait
     /**
      * Perform response log
      *
-     * @param ResponseInterface $response The response to log
+     * @param \Psr\Http\Message\ResponseInterface $response The response to log
      * @return void
      */
     public function logResponse(ResponseInterface $response): void
@@ -161,17 +163,17 @@ trait LogTrait
     /**
      * Return response body without sensitive information.
      *
-     * @param ResponseInterface $response The response to log
+     * @param \Psr\Http\Message\ResponseInterface $response The response to log
      * @return string
      */
     protected function responseBodyCleanup(ResponseInterface $response): string
     {
-        $body = $response->getBody();
-        if (empty((string)$body)) {
+        $body = $response->getBody()->getContents();
+        if (empty($body)) {
             return '(empty)';
         }
 
-        $data = json_decode($body, true);
+        $data = (array)json_decode($body, true);
         foreach (['jwt', 'renew'] as $tok) {
             if (!empty($data['meta'][$tok])) {
                 $data['meta'][$tok] = '***************';

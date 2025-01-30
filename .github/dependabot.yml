@@ -11,9 +11,5 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      gh-actions:
-        patterns: ['actions/*']
-      docker:
-        patterns: ['docker/*']
-      codecov:
-        patterns: ['codecov/*']
+      bedita:
+        patterns: ['bedita/*']

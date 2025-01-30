@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2018 ChannelWeb Srl, Chialab Srl
@@ -17,17 +19,7 @@ use BEdita\SDK\LogTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Dummy class for test purpose
- */
-class Dummy
-{
-    use LogTrait;
-}
-
-/**
- * \BEdita\SDK\LogTrait Test Case
- *
- * @coversDefaultClass \BEdita\SDK\LogTrait
+ * Test class for LogTrait
  */
 class LogTraitTest extends TestCase
 {
@@ -36,17 +28,17 @@ class LogTraitTest extends TestCase
      *
      * @var \BEdita\SDK\BEditaClient
      */
-    private $client = null;
+    private BEditaClient $client;
 
     /**
      * Log file path
      *
      * @var string
      */
-    private $logFile = null;
+    private string $logFile;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function setUp(): void
     {
@@ -65,7 +57,6 @@ class LogTraitTest extends TestCase
      * Test `initLogger`
      *
      * @return void
-     * @covers ::initLogger()
      */
     public function testInitLogger(): void
     {
@@ -77,7 +68,6 @@ class LogTraitTest extends TestCase
      * Test `initLogger` failure
      *
      * @return void
-     * @covers ::initLogger()
      */
     public function testInitLoggerFailure(): void
     {
@@ -86,13 +76,9 @@ class LogTraitTest extends TestCase
     }
 
     /**
-     * Test `logRequest` & `logResponse`
+     * Test `logRequest` & `logResponse` (requestHeadersCleanup, requestBodyCleanup)
      *
      * @return void
-     * @covers ::logRequest()
-     * @covers ::logResponse()
-     * @covers ::requestHeadersCleanup()
-     * @covers ::requestBodyCleanup()
      */
     public function testLogRequestResponse(): void
     {
@@ -111,7 +97,6 @@ class LogTraitTest extends TestCase
      * Test `maskPasswordField`.
      *
      * @return void
-     * @covers ::maskPasswordField()
      */
     public function testMaskPasswordField(): void
     {
@@ -126,7 +111,9 @@ class LogTraitTest extends TestCase
             'old_password' => $mask,
             'confirm-password' => $mask,
         ];
-        $dummy = new Dummy();
+        $dummy = new class {
+            use LogTrait;
+        };
         $dummy->maskPasswordField($data, 'password');
         $dummy->maskPasswordField($data, 'old_password');
         $dummy->maskPasswordField($data, 'confirm-password');
@@ -144,8 +131,6 @@ class LogTraitTest extends TestCase
      * Test empty logRequest` & `logResponse`
      *
      * @return void
-     * @covers ::logRequest()
-     * @covers ::logResponse()
      */
     public function testEmptyLogRequestResponse(): void
     {
@@ -155,12 +140,9 @@ class LogTraitTest extends TestCase
     }
 
     /**
-     * Test `requestBodyCleanup` & `responseBodyCleanup()`
+     * Test `requestBodyCleanup` & `responseBodyCleanup()` (+ maskPasswordField)
      *
      * @return void
-     * @covers ::requestBodyCleanup()
-     * @covers ::responseBodyCleanup()
-     * @covers ::maskPasswordField()
      */
     public function testBodyCleanup(): void
     {
@@ -178,7 +160,6 @@ class LogTraitTest extends TestCase
      * Test empty `responseBodyCleanup`
      *
      * @return void
-     * @covers ::responseBodyCleanup()
      */
     public function testEmptyResponseBodyCleanup(): void
     {

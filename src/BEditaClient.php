@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 /**
  * BEdita, API-first content management framework
  * Copyright 2023 Atlas Srl, ChannelWeb Srl, Chialab Srl
@@ -10,6 +11,8 @@ declare(strict_types=1);
  */
 
 namespace BEdita\SDK;
+
+use Exception;
 
 /**
  * BEdita API Client class
@@ -31,8 +34,9 @@ class BEditaClient extends BaseClient
             unset($headers['Authorization']);
             $this->setDefaultHeaders($headers);
         }
+        $body = (string)json_encode(compact('username', 'password') + ['grant_type' => 'password']);
 
-        return $this->post('/auth', json_encode(compact('username', 'password') + ['grant_type' => 'password']), ['Content-Type' => 'application/json']);
+        return $this->post('/auth', $body, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -51,13 +55,13 @@ class BEditaClient extends BaseClient
     /**
      * GET a single object of a given type
      *
-     * @param int|string $id Object id
+     * @param string|int $id Object id
      * @param string $type Object type name
      * @param array|null $query Optional query string
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getObject($id, string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
+    public function getObject(string|int $id, string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
     {
         return $this->get(sprintf('/%s/%s', $type, $id), $query, $headers);
     }
@@ -65,14 +69,14 @@ class BEditaClient extends BaseClient
     /**
      * Get a list of related resources or objects
      *
-     * @param int|string $id Resource id or object uname/id
+     * @param string|int $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
      * @param array|null $query Optional query string
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getRelated($id, string $type, string $relation, ?array $query = null, ?array $headers = null): ?array
+    public function getRelated(string|int $id, string $type, string $relation, ?array $query = null, ?array $headers = null): ?array
     {
         return $this->get(sprintf('/%s/%s/%s', $type, $id, $relation), $query, $headers);
     }
@@ -80,14 +84,14 @@ class BEditaClient extends BaseClient
     /**
      * Add a list of related resources or objects
      *
-     * @param int|string $id Resource id or object uname/id
+     * @param string|int $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
      * @param array $data Related resources or objects to add, MUST contain id and type
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function addRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
+    public function addRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
@@ -95,14 +99,14 @@ class BEditaClient extends BaseClient
     /**
      * Remove a list of related resources or objects
      *
-     * @param int|string $id Resource id or object uname/id
+     * @param string|int $id Resource id or object uname/id
      * @param string $type Type name
      * @param string $relation Relation name
      * @param array $data Related resources or objects to remove from relation
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function removeRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
+    public function removeRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
@@ -110,14 +114,14 @@ class BEditaClient extends BaseClient
     /**
      * Replace a list of related resources or objects: previuosly related are removed and replaced with these.
      *
-     * @param int|string $id Object id
+     * @param string|int $id Object id
      * @param string $type Object type name
      * @param string $relation Relation name
      * @param array $data Related resources or objects to insert
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function replaceRelated($id, string $type, string $relation, array $data, ?array $headers = null): ?array
+    public function replaceRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
     {
         return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
     }
@@ -170,11 +174,11 @@ class BEditaClient extends BaseClient
     /**
      * Delete an object (DELETE) => move to trashcan.
      *
-     * @param int|string $id Object id
+     * @param string|int $id Object id
      * @param string $type Object type name
      * @return array|null Response in array format
      */
-    public function deleteObject($id, string $type): ?array
+    public function deleteObject(string|int $id, string $type): ?array
     {
         return $this->delete(sprintf('/%s/%s', $type, $id));
     }
@@ -191,7 +195,7 @@ class BEditaClient extends BaseClient
         $response = null;
         try {
             $response = $this->delete(sprintf('/%s?ids=%s', $type, implode(',', $ids)));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // fallback to delete one by one, to be retrocompatible
             foreach ($ids as $id) {
                 $response = !empty($response) ? $response : $this->deleteObject($id, $type);
@@ -204,10 +208,10 @@ class BEditaClient extends BaseClient
     /**
      * Remove an object => permanently remove object from trashcan.
      *
-     * @param int|string $id Object id
+     * @param string|int $id Object id
      * @return array|null Response in array format
      */
-    public function remove($id): ?array
+    public function remove(string|int $id): ?array
     {
         return $this->delete(sprintf('/trash/%s', $id));
     }
@@ -223,7 +227,7 @@ class BEditaClient extends BaseClient
         $response = null;
         try {
             $response = $this->delete(sprintf('/trash?ids=%s', implode(',', $ids)));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // fallback to delete one by one, to be retrocompatible
             foreach ($ids as $id) {
                 $response = !empty($response) ? $response : $this->remove($id);
@@ -270,7 +274,7 @@ class BEditaClient extends BaseClient
      * @return array|null Response in array format
      * @throws \BEdita\SDK\BEditaClientException
      */
-    public function createMediaFromStream($streamId, string $type, array $body): ?array
+    public function createMediaFromStream(string $streamId, string $type, array $body): ?array
     {
         $id = $this->createMedia($type, $body);
         $this->addStreamToMedia($streamId, $id, $type);
@@ -335,7 +339,7 @@ class BEditaClient extends BaseClient
      * @param array $query The query params for thumbs call.
      * @return array|null Response in array format
      */
-    public function thumbs($id = null, $query = []): ?array
+    public function thumbs(?int $id = null, array $query = []): ?array
     {
         if (empty($id) && empty($query['ids'])) {
             throw new BEditaClientException('Invalid empty id|ids for thumbs');
@@ -377,11 +381,11 @@ class BEditaClient extends BaseClient
     /**
      * Restore object from trash
      *
-     * @param int|string $id Object id
+     * @param string|int $id Object id
      * @param string $type Object type name
      * @return array|null Response in array format
      */
-    public function restoreObject($id, string $type): ?array
+    public function restoreObject(string|int $id, string $type): ?array
     {
         return $this->patch(
             sprintf('/trash/%s', $id),

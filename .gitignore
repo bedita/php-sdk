@@ -6,8 +6,10 @@
 /tests/files/api.log
 /coverage/*
 /index.html
+/phpcs.xml
 /phpstan.neon
 /phpunit.xml
+/psalm.xml
 /provision/*
 /vendor/*
 !/vendor/.gitkeep
