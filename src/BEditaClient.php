@@ -72,7 +72,8 @@ class BEditaClient extends BaseClient
                 } catch (Exception $e) {
                     $responseBody = $this->getResponseBody();
                     $status = $responseBody['error']['status'];
-                    $message = intval($status) === 403 ? '[403] Forbidden' : ($responseBody['error']['message'] ?? $e->getMessage());
+                    $message = $responseBody['error']['message'] ?? $e->getMessage();
+                    $message = intval($status) === 403 ? '[403] Forbidden' : $message;
                     $result['errors'][] = [
                         'id' => $id,
                         'message' => $message,
@@ -106,8 +107,12 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getObject(string|int $id, string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
-    {
+    public function getObject(
+        string|int $id,
+        string $type = 'objects',
+        ?array $query = null,
+        ?array $headers = null,
+    ): ?array {
         return $this->get(sprintf('/%s/%s', $type, $id), $query, $headers);
     }
 
@@ -121,8 +126,13 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getRelated(string|int $id, string $type, string $relation, ?array $query = null, ?array $headers = null): ?array
-    {
+    public function getRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        ?array $query = null,
+        ?array $headers = null,
+    ): ?array {
         return $this->get(sprintf('/%s/%s/%s', $type, $id, $relation), $query, $headers);
     }
 
@@ -136,9 +146,18 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function addRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function addRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->post(
+            sprintf('/%s/%s/relationships/%s', $type, $id, $relation),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -151,9 +170,18 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function removeRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function removeRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->delete(
+            sprintf('/%s/%s/relationships/%s', $type, $id, $relation),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -166,9 +194,23 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function replaceRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function replaceRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->patch(
+            sprintf(
+                '/%s/%s/relationships/%s',
+                $type,
+                $id,
+                $relation,
+            ),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -366,7 +408,9 @@ class BEditaClient extends BaseClient
             ]),
         );
         if (empty($response)) {
-            throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
+            throw new BEditaClientException(
+                'Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id),
+            );
         }
     }
 
