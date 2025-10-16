@@ -166,7 +166,7 @@ class BEditaClientTest extends TestCase
                     ],
                 ],
             ]),
-            ['Content-Type' => 'application/vnd.api+json']
+            ['Content-Type' => 'application/vnd.api+json'],
         );
         $ids = [$id1, $id2];
         $data = ['status' => 'on'];
@@ -221,7 +221,7 @@ class BEditaClientTest extends TestCase
                     ],
                 ],
             ]),
-            ['Content-Type' => 'application/vnd.api+json']
+            ['Content-Type' => 'application/vnd.api+json'],
         );
         $ids = [$id1, $id2];
         $data = ['status' => 'on'];
@@ -1260,15 +1260,15 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documents
-            )
+                $documents,
+            ),
         );
         static::assertIsArray($addRelated);
         static::assertArrayHasKey('links', $addRelated);
         static::assertArrayHasKey('self', $addRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/relationships/children', $folder['data']['id']),
-            $addRelated['links']['self']
+            $addRelated['links']['self'],
         );
 
         // get folder children
@@ -1289,7 +1289,7 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('self', $getRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/children', $folder['data']['id']),
-            $getRelated['links']['self']
+            $getRelated['links']['self'],
         );
 
         // remove 5 documents from folder children
@@ -1304,15 +1304,15 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                array_slice($documents, 0, 5)
-            )
+                array_slice($documents, 0, 5),
+            ),
         );
         static::assertIsArray($removeRelated);
         static::assertArrayHasKey('links', $removeRelated);
         static::assertArrayHasKey('self', $removeRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/relationships/children', $folder['data']['id']),
-            $removeRelated['links']['self']
+            $removeRelated['links']['self'],
         );
 
         // get again folder children: should be 5
@@ -1332,8 +1332,8 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documentsReplace
-            )
+                $documentsReplace,
+            ),
         );
 
         // get again folder children: should be 2
@@ -1352,8 +1352,8 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documentsReplace
-            )
+                $documentsReplace,
+            ),
         );
 
         // get again folder children: should be 0

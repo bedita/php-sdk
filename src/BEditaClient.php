@@ -57,7 +57,7 @@ class BEditaClient extends BaseClient
                     'ids' => implode(',', $ids),
                     'data' => $data,
                 ]),
-                ['Content-Type' => 'application/json']
+                ['Content-Type' => 'application/json'],
             );
         } catch (Exception $e) {
             $result['saved'] = [];
@@ -363,7 +363,7 @@ class BEditaClient extends BaseClient
                     'id' => $id,
                     'type' => $type,
                 ],
-            ])
+            ]),
         );
         if (empty($response)) {
             throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
@@ -405,7 +405,7 @@ class BEditaClient extends BaseClient
         return $this->get(
             sprintf('/model/schema/%s', $type),
             null,
-            ['Accept' => 'application/schema+json']
+            ['Accept' => 'application/schema+json'],
         );
     }
 
@@ -419,7 +419,7 @@ class BEditaClient extends BaseClient
     {
         return $this->get(
             sprintf('/model/relations/%s', $name),
-            ['include' => 'left_object_types,right_object_types']
+            ['include' => 'left_object_types,right_object_types'],
         );
     }
 
@@ -439,7 +439,7 @@ class BEditaClient extends BaseClient
                     'id' => $id,
                     'type' => $type,
                 ],
-            ])
+            ]),
         );
     }
 

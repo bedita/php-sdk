@@ -436,7 +436,7 @@ class BaseClientTest extends TestCase
                 string $path,
                 ?array $query = null,
                 ?array $headers = null,
-                $body = null
+                $body = null,
             ): ResponseInterface {
                 throw new class extends BEditaClientException {
                     public function __construct()
