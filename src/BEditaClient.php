@@ -40,6 +40,51 @@ class BEditaClient extends BaseClient
     }
 
     /**
+     * Bulk edit objects using `POST /bulk/edit` endpoint.
+     * If the endpoint is not available, it fallback to edit one by one (retrocompatible way).
+     *
+     * @param array $ids Object ids
+     * @param array $data Data to modify
+     * @return array
+     */
+    public function bulkEdit(array $ids, array $data): array
+    {
+        $result = [];
+        try {
+            $result = (array)$this->post(
+                '/bulk/edit',
+                json_encode([
+                    'ids' => implode(',', $ids),
+                    'data' => $data,
+                ]),
+                ['Content-Type' => 'application/json']
+            );
+        } catch (Exception $e) {
+            $result['saved'] = [];
+            $result['errors'] = [];
+            // fallback to edit one by one, to be retrocompatible
+            foreach ($ids as $id) {
+                try {
+                    $response = $this->getObject($id);
+                    $type = $response['data']['type'];
+                    $response = $this->save($type, $data + ['id' => $id]);
+                    $result['saved'][] = $response['data']['id'];
+                } catch (Exception $e) {
+                    $responseBody = $this->getResponseBody();
+                    $status = $responseBody['error']['status'];
+                    $message = intval($status) === 403 ? '[403] Forbidden' : ($responseBody['error']['message'] ?? $e->getMessage());
+                    $result['errors'][] = [
+                        'id' => $id,
+                        'message' => $message,
+                    ];
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * GET a list of resources or objects of a given type
      *
      * @param string $type Object type name
