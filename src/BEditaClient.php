@@ -64,8 +64,7 @@ class BEditaClient extends BaseClient
             foreach ($ids as $id) {
                 try {
                     $response = $this->getObject($id);
-                    $type = $response['data']['type'];
-                    $response = $this->save($type, $data + ['id' => $id]);
+                    $response = $this->save($response['data']['type'], $data + ['id' => (string)$id]);
                     $result['saved'][] = $response['data']['id'];
                 } catch (Exception $e) {
                     $responseBody = $this->getResponseBody();
