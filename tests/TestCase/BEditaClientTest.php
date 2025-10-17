@@ -168,9 +168,10 @@ class BEditaClientTest extends TestCase
             ]),
             ['Content-Type' => 'application/vnd.api+json'],
         );
-        $ids = [$id1, $id2];
-        $data = ['status' => 'on'];
-        $response = $this->client->bulkEdit($ids, $data);
+        $objects = ['documents' => [$id1, $id2]];
+        $attributes = ['status' => 'on'];
+        $response = $this->client->bulkEdit($objects, $attributes);
+        $response = $response['data'];
         static::assertNotEmpty($response);
         static::assertArrayHasKey('saved', $response);
         static::assertArrayNotHasKey('error', $response);
@@ -223,9 +224,10 @@ class BEditaClientTest extends TestCase
             ]),
             ['Content-Type' => 'application/vnd.api+json'],
         );
-        $ids = [$id1, $id2];
-        $data = ['status' => 'on'];
-        $response = $client->bulkEdit($ids, $data);
+        $objects = ['documents' => [$id1, $id2]];
+        $attributes = ['status' => 'on'];
+        $response = $client->bulkEdit($objects, $attributes);
+        $response = $response['data'];
         static::assertNotEmpty($response);
         static::assertArrayHasKey('saved', $response);
         static::assertArrayNotHasKey('error', $response);

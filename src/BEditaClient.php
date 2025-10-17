@@ -43,38 +43,49 @@ class BEditaClient extends BaseClient
      * Bulk edit objects using `POST /bulk/edit` endpoint.
      * If the endpoint is not available, it fallback to edit one by one (retrocompatible way).
      *
-     * @param array $ids Object ids
-     * @param array $data Data to modify
+     * $objects is an array of <type>: <array of ids>, e.g.:
+     * [
+     *    'articles' => [1,2,3],
+     *    'documents' => [4,5,6],
+     * ]
+     *
+     * The $attributes is an array of attributes to modify, e.g.:
+     * [
+     *    'title' => 'New title',
+     *    'status' => 'off',
+     * ]
+     *
+     * @param array $objects Object data to indentify objects to edit
+     * @param array $attributes Data to modify
      * @return array
      */
-    public function bulkEdit(array $ids, array $data): array
+    public function bulkEdit(array $objects, array $attributes): array
     {
-        $result = [];
+        $result = ['data' => ['saved' => [], 'errors' => []]];
         try {
-            $ids = array_map('intval', $ids);
             $result = (array)$this->post(
                 '/bulk/edit',
-                json_encode(compact('ids', 'data')),
+                json_encode(['data' => compact('attributes', 'objects')]),
                 ['Content-Type' => 'application/json'],
             );
         } catch (Exception $e) {
-            $result['saved'] = [];
-            $result['errors'] = [];
             // fallback to edit one by one, to be retrocompatible
-            foreach ($ids as $id) {
-                try {
-                    $response = $this->getObject($id);
-                    $response = $this->save($response['data']['type'], $data + ['id' => (string)$id]);
-                    $result['saved'][] = $response['data']['id'];
-                } catch (Exception $e) {
-                    $responseBody = $this->getResponseBody();
-                    $status = $responseBody['error']['status'];
-                    $message = $responseBody['error']['message'] ?? $e->getMessage();
-                    $message = intval($status) === 403 ? '[403] Forbidden' : $message;
-                    $result['errors'][] = [
-                        'id' => $id,
-                        'message' => $message,
-                    ];
+            $types = array_keys($objects);
+            foreach ($types as $type) {
+                foreach ($objects[$type] as $id) {
+                    try {
+                        $response = $this->save($type, $attributes + ['id' => (string)$id]);
+                        $result['data']['saved'][] = $response['data']['id'];
+                    } catch (Exception $e) {
+                        $responseBody = $this->getResponseBody();
+                        $status = $responseBody['error']['status'];
+                        $message = $responseBody['error']['message'] ?? $e->getMessage();
+                        $message = intval($status) === 403 ? '[403] Forbidden' : $message;
+                        $result['data']['errors'][] = [
+                            'id' => $id,
+                            'message' => $message,
+                        ];
+                    }
                 }
             }
         }
