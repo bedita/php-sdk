@@ -51,12 +51,10 @@ class BEditaClient extends BaseClient
     {
         $result = [];
         try {
+            $ids = array_map('intval', $ids);
             $result = (array)$this->post(
                 '/bulk/edit',
-                json_encode([
-                    'ids' => implode(',', $ids),
-                    'data' => $data,
-                ]),
+                json_encode(compact('ids', 'data')),
                 ['Content-Type' => 'application/json'],
             );
         } catch (Exception $e) {
