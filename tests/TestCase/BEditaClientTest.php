@@ -176,7 +176,7 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('saved', $response);
         static::assertArrayNotHasKey('error', $response);
         static::assertEquals([$id1], $response['saved']);
-        static::assertEquals([['id' => $id2, 'message' => '[403] Forbidden']], $response['errors']);
+        static::assertEquals([['id' => $id2, 'message' => 'Operation not allowed on "locked" objects']], $response['errors']);
     }
 
     /**
@@ -232,7 +232,7 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('saved', $response);
         static::assertArrayNotHasKey('error', $response);
         static::assertEquals([$id1], $response['saved']);
-        static::assertEquals([['id' => $id2, 'message' => '[403] Forbidden']], $response['errors']);
+        static::assertEquals([['id' => $id2, 'message' => '[403] Not Found']], $response['errors']);
     }
 
     /**

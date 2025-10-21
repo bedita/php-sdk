@@ -80,7 +80,6 @@ class BEditaClient extends BaseClient
                         $responseBody = $this->getResponseBody();
                         $status = $responseBody['error']['status'];
                         $message = $responseBody['error']['message'] ?? $e->getMessage();
-                        $message = intval($status) === 403 ? '[403] Forbidden' : $message;
                         $result['data']['errors'][] = [
                             'id' => $id,
                             'message' => $message,
