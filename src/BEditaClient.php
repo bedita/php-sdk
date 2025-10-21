@@ -77,12 +77,9 @@ class BEditaClient extends BaseClient
                         $response = $this->save($type, $attributes + ['id' => (string)$id]);
                         $result['data']['saved'][] = $response['data']['id'];
                     } catch (Exception $e) {
-                        $responseBody = $this->getResponseBody();
-                        $status = $responseBody['error']['status'];
-                        $message = $responseBody['error']['message'] ?? $e->getMessage();
                         $result['data']['errors'][] = [
                             'id' => $id,
-                            'message' => $message,
+                            'message' => $e->getMessage(),
                         ];
                     }
                 }
