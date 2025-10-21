@@ -40,6 +40,56 @@ class BEditaClient extends BaseClient
     }
 
     /**
+     * Bulk edit objects using `POST /bulk/edit` endpoint.
+     * If the endpoint is not available, it fallback to edit one by one (retrocompatible way).
+     *
+     * $objects is an array of <type>: <array of ids>, e.g.:
+     * [
+     *    'articles' => [1,2,3],
+     *    'documents' => [4,5,6],
+     * ]
+     *
+     * The $attributes is an array of attributes to modify, e.g.:
+     * [
+     *    'title' => 'New title',
+     *    'status' => 'off',
+     * ]
+     *
+     * @param array $objects Object data to indentify objects to edit
+     * @param array $attributes Data to modify
+     * @return array
+     */
+    public function bulkEdit(array $objects, array $attributes): array
+    {
+        $result = ['data' => ['saved' => [], 'errors' => []]];
+        try {
+            $result = (array)$this->post(
+                '/bulk/edit',
+                json_encode(['data' => compact('attributes', 'objects')]),
+                ['Content-Type' => 'application/json'],
+            );
+        } catch (Exception $e) {
+            // fallback to edit one by one, to be retrocompatible
+            $types = array_keys($objects);
+            foreach ($types as $type) {
+                foreach ($objects[$type] as $id) {
+                    try {
+                        $response = $this->save($type, $attributes + ['id' => (string)$id]);
+                        $result['data']['saved'][] = $response['data']['id'];
+                    } catch (Exception $e) {
+                        $result['data']['errors'][] = [
+                            'id' => $id,
+                            'message' => $e->getMessage(),
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * GET a list of resources or objects of a given type
      *
      * @param string $type Object type name
@@ -61,8 +111,12 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getObject(string|int $id, string $type = 'objects', ?array $query = null, ?array $headers = null): ?array
-    {
+    public function getObject(
+        string|int $id,
+        string $type = 'objects',
+        ?array $query = null,
+        ?array $headers = null,
+    ): ?array {
         return $this->get(sprintf('/%s/%s', $type, $id), $query, $headers);
     }
 
@@ -76,8 +130,13 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function getRelated(string|int $id, string $type, string $relation, ?array $query = null, ?array $headers = null): ?array
-    {
+    public function getRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        ?array $query = null,
+        ?array $headers = null,
+    ): ?array {
         return $this->get(sprintf('/%s/%s/%s', $type, $id, $relation), $query, $headers);
     }
 
@@ -91,9 +150,18 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function addRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->post(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function addRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->post(
+            sprintf('/%s/%s/relationships/%s', $type, $id, $relation),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -106,9 +174,18 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function removeRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->delete(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function removeRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->delete(
+            sprintf('/%s/%s/relationships/%s', $type, $id, $relation),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -121,9 +198,23 @@ class BEditaClient extends BaseClient
      * @param array|null $headers Custom request headers
      * @return array|null Response in array format
      */
-    public function replaceRelated(string|int $id, string $type, string $relation, array $data, ?array $headers = null): ?array
-    {
-        return $this->patch(sprintf('/%s/%s/relationships/%s', $type, $id, $relation), json_encode(compact('data')), $headers);
+    public function replaceRelated(
+        string|int $id,
+        string $type,
+        string $relation,
+        array $data,
+        ?array $headers = null,
+    ): ?array {
+        return $this->patch(
+            sprintf(
+                '/%s/%s/relationships/%s',
+                $type,
+                $id,
+                $relation,
+            ),
+            json_encode(compact('data')),
+            $headers,
+        );
     }
 
     /**
@@ -318,10 +409,12 @@ class BEditaClient extends BaseClient
                     'id' => $id,
                     'type' => $type,
                 ],
-            ])
+            ]),
         );
         if (empty($response)) {
-            throw new BEditaClientException('Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id));
+            throw new BEditaClientException(
+                'Invalid response from PATCH ' . sprintf('/streams/%s/relationships/object', $id),
+            );
         }
     }
 
@@ -360,7 +453,7 @@ class BEditaClient extends BaseClient
         return $this->get(
             sprintf('/model/schema/%s', $type),
             null,
-            ['Accept' => 'application/schema+json']
+            ['Accept' => 'application/schema+json'],
         );
     }
 
@@ -374,7 +467,7 @@ class BEditaClient extends BaseClient
     {
         return $this->get(
             sprintf('/model/relations/%s', $name),
-            ['include' => 'left_object_types,right_object_types']
+            ['include' => 'left_object_types,right_object_types'],
         );
     }
 
@@ -394,7 +487,7 @@ class BEditaClient extends BaseClient
                     'id' => $id,
                     'type' => $type,
                 ],
-            ])
+            ]),
         );
     }
 

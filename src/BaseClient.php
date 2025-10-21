@@ -245,8 +245,13 @@ class BaseClient
      * @param \Psr\Http\Message\StreamInterface|resource|string|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      */
-    protected function sendRequestRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
-    {
+    protected function sendRequestRetry(
+        string $method,
+        string $path,
+        ?array $query = null,
+        ?array $headers = null,
+        $body = null,
+    ): ResponseInterface {
         try {
             return $this->sendRequest($method, $path, $query, $headers, $body);
         } catch (BEditaClientException $e) {
@@ -275,8 +280,13 @@ class BaseClient
      * @param \Psr\Http\Message\StreamInterface|resource|string|null $body Request body.
      * @return \Psr\Http\Message\ResponseInterface
      */
-    protected function refreshAndRetry(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
-    {
+    protected function refreshAndRetry(
+        string $method,
+        string $path,
+        ?array $query = null,
+        ?array $headers = null,
+        $body = null,
+    ): ResponseInterface {
         $this->refreshTokens();
         unset($headers['Authorization']);
 
@@ -294,8 +304,13 @@ class BaseClient
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \BEdita\SDK\BEditaClientException Throws an exception if server response code is not 20x.
      */
-    protected function sendRequest(string $method, string $path, ?array $query = null, ?array $headers = null, $body = null): ResponseInterface
-    {
+    protected function sendRequest(
+        string $method,
+        string $path,
+        ?array $query = null,
+        ?array $headers = null,
+        $body = null,
+    ): ResponseInterface {
         $uri = $this->requestUri($path, $query);
         $headers = array_merge($this->defaultHeaders, (array)$headers);
 
