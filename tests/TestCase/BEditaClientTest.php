@@ -178,7 +178,7 @@ class BEditaClientTest extends TestCase
         static::assertEquals([$id1], $response['saved']);
         $actual = $response['errors'];
         static::assertEquals($id2, $actual[0]['id']);
-        static::assertContains('Operation not allowed on "locked" objects', $actual[0]['message']);
+        static::assertStringContainsString('Operation not allowed on "locked" objects', $actual[0]['message']);
     }
 
     /**
@@ -236,7 +236,7 @@ class BEditaClientTest extends TestCase
         static::assertEquals([$id1], $response['saved']);
         $actual = $response['errors'];
         static::assertEquals($id2, $actual[0]['id']);
-        static::assertContains('[403]', $actual[0]['message']);
+        static::assertStringContainsString('[403]', $actual[0]['message']);
     }
 
     /**
