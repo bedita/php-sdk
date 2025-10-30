@@ -32,7 +32,7 @@ class MyBaseClient extends BaseClient
         string $path,
         ?array $query = null,
         ?array $headers = null,
-        $body = null
+        $body = null,
     ): ResponseInterface {
         return parent::sendRequestRetry($method, $path, $query, $headers, $body);
     }
@@ -45,7 +45,7 @@ class MyBaseClient extends BaseClient
         string $path,
         ?array $query = null,
         ?array $headers = null,
-        $body = null
+        $body = null,
     ): ResponseInterface {
         return parent::sendRequest($method, $path, $query, $headers, $body);
     }

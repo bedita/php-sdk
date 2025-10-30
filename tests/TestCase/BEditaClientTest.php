@@ -136,6 +136,106 @@ class BEditaClientTest extends TestCase
     }
 
     /**
+     * Test `bulkEdit` method
+     *
+     * @return void
+     */
+    public function testBulkEdit(): void
+    {
+        $this->authenticate();
+        // create 2 documents with status draft, one locked, one not locked
+        $response = $this->client->save('documents', [
+            'title' => 'this is a test document 1',
+            'status' => 'draft',
+        ]);
+        $id1 = $response['data']['id'];
+        $response = $this->client->save('documents', [
+            'title' => 'this is a test document 2',
+            'status' => 'draft',
+        ]);
+        $id2 = $response['data']['id'];
+        // lock the second document
+        $this->client->patch(
+            sprintf('/documents/%s', $id2),
+            json_encode([
+                'data' => [
+                    'id' => $id2,
+                    'type' => 'documents',
+                    'meta' => [
+                        'locked' => true,
+                    ],
+                ],
+            ]),
+            ['Content-Type' => 'application/vnd.api+json'],
+        );
+        $objects = ['documents' => [$id1, $id2]];
+        $attributes = ['status' => 'on'];
+        $response = $this->client->bulkEdit($objects, $attributes);
+        $response = $response['data'];
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('saved', $response);
+        static::assertArrayNotHasKey('error', $response);
+        static::assertEquals([$id1], $response['saved']);
+        static::assertEquals([['id' => $id2, 'message' => 'Operation not allowed on "locked" objects']], $response['errors']);
+    }
+
+    /**
+     * Test `bulkEdit` method retrocompatibility mode
+     *
+     * @return void
+     */
+    public function testBulkEditRetrocompatibility(): void
+    {
+        // mock $this->post('/bulk/edit') to return an exception, to force use retrocompatibility mode
+        $client = new class ($this->apiBaseUrl, $this->apiKey) extends BEditaClient {
+            public function post(string $path, ?string $body = null, ?array $headers = null): ?array
+            {
+                if ($path === '/bulk/edit') {
+                    throw new BEditaClientException('[404] Not Found', 404);
+                }
+
+                return parent::post($path, $body, $headers);
+            }
+        };
+        $response = $client->authenticate($this->adminUser, $this->adminPassword);
+        $client->setupTokens($response['meta']);
+        // create 2 documents with status draft, one locked, one not locked
+        $response = $client->save('documents', [
+            'title' => 'this is a test document 1',
+            'status' => 'draft',
+        ]);
+        $id1 = $response['data']['id'];
+        $response = $client->save('documents', [
+            'title' => 'this is a test document 2',
+            'status' => 'draft',
+        ]);
+        $id2 = $response['data']['id'];
+        // lock the second document
+        $client->patch(
+            sprintf('/documents/%s', $id2),
+            json_encode([
+                'data' => [
+                    'id' => $id2,
+                    'type' => 'documents',
+                    'meta' => [
+                        'locked' => true,
+                    ],
+                ],
+            ]),
+            ['Content-Type' => 'application/vnd.api+json'],
+        );
+        $objects = ['documents' => [$id1, $id2]];
+        $attributes = ['status' => 'on'];
+        $response = $client->bulkEdit($objects, $attributes);
+        $response = $response['data'];
+        static::assertNotEmpty($response);
+        static::assertArrayHasKey('saved', $response);
+        static::assertArrayNotHasKey('error', $response);
+        static::assertEquals([$id1], $response['saved']);
+        static::assertEquals([['id' => $id2, 'message' => '[403] Not Found']], $response['errors']);
+    }
+
+    /**
      * Test `getObjects` method
      *
      * @return void
@@ -1162,15 +1262,15 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documents
-            )
+                $documents,
+            ),
         );
         static::assertIsArray($addRelated);
         static::assertArrayHasKey('links', $addRelated);
         static::assertArrayHasKey('self', $addRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/relationships/children', $folder['data']['id']),
-            $addRelated['links']['self']
+            $addRelated['links']['self'],
         );
 
         // get folder children
@@ -1191,7 +1291,7 @@ class BEditaClientTest extends TestCase
         static::assertArrayHasKey('self', $getRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/children', $folder['data']['id']),
-            $getRelated['links']['self']
+            $getRelated['links']['self'],
         );
 
         // remove 5 documents from folder children
@@ -1206,15 +1306,15 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                array_slice($documents, 0, 5)
-            )
+                array_slice($documents, 0, 5),
+            ),
         );
         static::assertIsArray($removeRelated);
         static::assertArrayHasKey('links', $removeRelated);
         static::assertArrayHasKey('self', $removeRelated['links']);
         static::assertStringContainsString(
             sprintf('/folders/%s/relationships/children', $folder['data']['id']),
-            $removeRelated['links']['self']
+            $removeRelated['links']['self'],
         );
 
         // get again folder children: should be 5
@@ -1234,8 +1334,8 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documentsReplace
-            )
+                $documentsReplace,
+            ),
         );
 
         // get again folder children: should be 2
@@ -1254,8 +1354,8 @@ class BEditaClientTest extends TestCase
                         'type' => $document['data']['type'],
                     ];
                 },
-                $documentsReplace
-            )
+                $documentsReplace,
+            ),
         );
 
         // get again folder children: should be 0

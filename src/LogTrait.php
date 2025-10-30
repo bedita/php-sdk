@@ -76,7 +76,7 @@ trait LogTrait
             $request->getMethod(),
             $request->getUri(),
             $this->requestHeadersCleanup($request),
-            $this->requestBodyCleanup($request)
+            $this->requestBodyCleanup($request),
         );
         $this->logger->info($msg);
     }
@@ -155,7 +155,7 @@ trait LogTrait
             $response->getStatusCode(),
             $response->getReasonPhrase(),
             json_encode($response->getHeaders()),
-            $this->responseBodyCleanup($response)
+            $this->responseBodyCleanup($response),
         );
         $this->logger->info($msg);
     }
